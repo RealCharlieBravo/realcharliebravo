@@ -1,38 +1,50 @@
-// Seed Collective - Configuration File
-				// Edit this file to customize your site
+// Charlie Bravo - Configuration File
+// Veteran, Father, Entertainer, and Streamer
 
-				window.siteConfig = {
+window.siteConfig = {
     "site": {
-        "name": "TACTICAL MERC SHOP",
-        "tagline": "Unique Collectibles from Around the World",
+        "name": "Charlie Bravo",
+        "tagline": "Veteran, Father, Entertainer, and Streamer",
         "logo": "img/logo.jpg",
         "heroBackground": "img/hero-bg.jpg",
-        "socialPreview": "",
-        "showHeroText": false,
+        "socialPreview": "img/social-preview.jpg",
+        "showHeroText": true,
         "email": "contact@realcharliebravo.com",
         "socialLinks": [
+            {
+                "name": "YouTube",
+                "url": "https://www.youtube.com/@RealCharlieBravo"
+            },
             {
                 "name": "Discord",
                 "url": "https://discord.gg/BravoGang"
             },
             {
-                "name": "YouTube",
-                "url": "https://youtube.com/@RealCharlieBravo"
+                "name": "Twitch",
+                "url": "https://www.twitch.tv/RealCharlieBravo"
             },
             {
                 "name": "X",
                 "url": "https://x.com/RealCBravo"
+            },
+            {
+                "name": "TikTok",
+                "url": "https://www.tiktok.com/@realcharliebravo"
+            },
+            {
+                "name": "Spotify",
+                "url": "https://open.spotify.com/playlist/0JAs7pZwEX0TVnhBDDHTfP"
             }
         ],
         "copyright": "© 2025 RealCharlieBravo.com All rights reserved."
     },
     "colors": {
-        "primary": "#2e7d32",
-        "secondary": "#8bc34a",
-        "tertiary": "#795548",
-        "highlight": "#ffc107",
-        "alert": "#f44336",
-        "background": "#1b2d1c",
+        "primary": "#cc0000",
+        "secondary": "#808080",
+        "tertiary": "#333333",
+        "highlight": "#ffffff",
+        "alert": "#cc0000",
+        "background": "#1a1a1a",
         "text": "#ffffff"
     },
     "background": {
@@ -44,13 +56,13 @@
         "body": "'Exo 2', sans-serif"
     },
     "terminology": {
-        "category1": "Anti-Nazi",
-        "category2": "Pro-USA",
-        "category3": "American-Flag",
-        "productTerm": "Collectible",
-        "productPluralTerm": "Collectibles",
-        "packTerm": "Collection Pack",
-        "cartTerm": "Collection Box",
+        "category1": "Merch",
+        "category2": "Links",
+        "category3": "Videos",
+        "productTerm": "Item",
+        "productPluralTerm": "Items",
+        "packTerm": "Pack",
+        "cartTerm": "Cart",
         "soldOutLabel": "UNAVAILABLE",
         "comingSoonLabel": "COMING SOON"
     },
@@ -61,13 +73,13 @@
             "intensity": "medium"
         },
         "specialFeature": {
-            "enabled": true,
+            "enabled": false,
             "type": "floatingObject",
             "image": "img/floating-object.png",
             "behavior": "float"
         },
         "backgroundAudio": {
-            "enabled": true,
+            "enabled": false,
             "file": "audio/background.mp3",
             "volume": 0.5
         }
@@ -79,99 +91,61 @@
         "dataPath": "data/straindata.json"
     },
     "legal": {
-        "enableDisclaimer": true,
-        "disclaimerText": "[Company Name] sells products for souvenir and collectible purposes only. Products may not be legal in some countries and [Company Name] strongly advises you not to take products where they are not permitted. [Company Name] does not accept any responsibility for any violation of customs regulations or local laws. All responsibility falls on the purchaser to determine the legal status of products in their country of residence. Any information provided is for educational purposes only."
+        "enableDisclaimer": false,
+        "disclaimerText": ""
     },
     "about": {
-        "title": "About RealCharlieBravo Tactical Merc Shop",
-        "subtitle": "Our Story and Mission",
+        "title": "About Charlie Bravo",
+        "subtitle": "Veteran, Father, Entertainer, and Streamer",
         "image": "img/about.jpg",
-        "description": "Founded in 2025, RealCharlieBravo Tactical Merc Shop is dedicated to bringing unique collectibles to enthusiasts around the world. We carefully curate our collections to ensure only the highest quality items reach our customers.",
+        "description": "Charlie Bravo is a veteran content creator bringing you entertainment, commentary, and good vibes. Anti-Nazi, Pro-USA, and always keeping it real. Join the Bravo Gang!",
         "teamMembers": [],
         "historyItems": [],
         "additionalSections": []
     },
     "products": {
         "defaultStatus": "available",
-        "enableRatings": true,
-        "showPackOptions": true,
-        "defaultPackOptions": [
-            {
-                "size": "3 Pack",
-                "regularPrice": 35,
-                "salePrice": 30
-            },
-            {
-                "size": "5 Pack",
-                "regularPrice": 50,
-                "salePrice": 45
-            },
-            {
-                "size": "10 Pack",
-                "regularPrice": 95,
-                "salePrice": 80
-            }
-        ],
+        "enableRatings": false,
+        "showPackOptions": false,
+        "defaultPackOptions": [],
         "items": {
-            "product-1750962404314": {
-                "id": "product-1750962404314",
-                "name": "Anti Nazi- Crossed Out Swastika Embroidered Patch",
-                "type": "Anti-Nazi",
+            "link-youtube": {
+                "id": "link-youtube",
+                "name": "YouTube Channel",
+                "type": "Links",
                 "status": "available",
                 "delivery": "digital",
-                "digitalContent": "https://www.angryyoungandpoor.com/store/pc/Anti-Nazi-Crossed-Out-Swastika-Embroidered-Patch-p40421.htm",
-                "image": "product2.jpg",
+                "digitalContent": "https://www.youtube.com/@RealCharlieBravo",
+                "image": "product-youtube.jpg",
                 "additionalImages": [],
-                "description": "Anti Nazi- Crossed Out Swastika Embroidered Patch",
-                "variety": "Premium",
-                "rating": "4.8/5",
-                "origin": "External",
-                "rarity": "Standard",
-                "details": "3\" patch with iron on backing",
-                "notes": "Worth getting.",
-                "packOptions": [],
-                "enableHoverImage": false,
-                "hoverImage": "",
-                "hidden": false,
-                "displayOrder": 4
-            },
-            "product-1750970205180": {
-                "id": "product-1750970205180",
-                "name": "American Flag Lapel Pin",
-                "type": "American-Flag",
-                "status": "available",
-                "delivery": "digital",
-                "digitalContent": "https://www.agentgearusa.com/product/american-flag-lapel-pin/",
-                "image": "product5.jpg",
-                "additionalImages": [],
-                "description": "American Flag Lapel Pin",
-                "variety": "Premium",
-                "rating": "4.8/5",
-                "origin": "External",
-                "rarity": "Standard",
-                "details": "American Flag Lapel Pin",
-                "notes": "Nice Flag",
+                "description": "Watch my videos, shorts, and streams on YouTube!",
+                "variety": "",
+                "rating": "",
+                "origin": "",
+                "rarity": "",
+                "details": "Subscribe and hit the bell!",
+                "notes": "",
                 "packOptions": [],
                 "enableHoverImage": false,
                 "hoverImage": "",
                 "hidden": false,
                 "displayOrder": 1
             },
-            "product-1750970582979": {
-                "id": "product-1750970582979",
-                "name": "Proud American Flag Hat/Lapel Pin",
-                "type": "Pro-USA",
+            "link-discord": {
+                "id": "link-discord",
+                "name": "Discord - Bravo Gang",
+                "type": "Links",
                 "status": "available",
                 "delivery": "digital",
-                "digitalContent": "https://store.vetfriends.com/proud-american-lapel-pin/",
-                "image": "product3.jpg",
+                "digitalContent": "https://discord.gg/BravoGang",
+                "image": "product-discord.jpg",
                 "additionalImages": [],
-                "description": "Proud American Flag Hat/Lapel Pin",
-                "variety": "Premium",
-                "rating": "4.8/5",
-                "origin": "External",
-                "rarity": "Standard",
-                "details": "Proud American Flag Hat/Lapel Pin",
+                "description": "Join the Bravo Gang Discord community!",
+                "variety": "",
+                "rating": "",
+                "origin": "",
+                "rarity": "",
+                "details": "Chat, hang out, and be part of the gang",
                 "notes": "",
                 "packOptions": [],
                 "enableHoverImage": false,
@@ -179,10 +153,164 @@
                 "hidden": false,
                 "displayOrder": 2
             },
+            "link-twitch": {
+                "id": "link-twitch",
+                "name": "Twitch Stream",
+                "type": "Links",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://www.twitch.tv/RealCharlieBravo",
+                "image": "product-twitch.jpg",
+                "additionalImages": [],
+                "description": "Catch me live on Twitch!",
+                "variety": "",
+                "rating": "",
+                "origin": "",
+                "rarity": "",
+                "details": "Live streams and gaming",
+                "notes": "",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 3
+            },
+            "link-tiktok": {
+                "id": "link-tiktok",
+                "name": "TikTok",
+                "type": "Links",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://www.tiktok.com/@realcharliebravo",
+                "image": "product-tiktok.jpg",
+                "additionalImages": [],
+                "description": "Short form content and clips on TikTok",
+                "variety": "",
+                "rating": "",
+                "origin": "",
+                "rarity": "",
+                "details": "Quick videos and highlights",
+                "notes": "",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 4
+            },
+            "link-spotify": {
+                "id": "link-spotify",
+                "name": "Spotify Playlist",
+                "type": "Links",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://open.spotify.com/playlist/0JAs7pZwEX0TVnhBDDHTfP",
+                "image": "product-spotify.jpg",
+                "additionalImages": [],
+                "description": "Check out my Spotify playlist!",
+                "variety": "",
+                "rating": "",
+                "origin": "",
+                "rarity": "",
+                "details": "Music I vibe to",
+                "notes": "",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 5
+            },
+            "link-x": {
+                "id": "link-x",
+                "name": "X (Twitter)",
+                "type": "Links",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://x.com/RealCBravo",
+                "image": "product-x.jpg",
+                "additionalImages": [],
+                "description": "Follow me on X for updates and takes",
+                "variety": "",
+                "rating": "",
+                "origin": "",
+                "rarity": "",
+                "details": "Hot takes and updates",
+                "notes": "",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 6
+            },
+            "product-1750962404314": {
+                "id": "product-1750962404314",
+                "name": "Anti Nazi Crossed Out Swastika Patch",
+                "type": "Merch",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://www.angryyoungandpoor.com/store/pc/Anti-Nazi-Crossed-Out-Swastika-Embroidered-Patch-p40421.htm",
+                "image": "product2.jpg",
+                "additionalImages": [],
+                "description": "Anti Nazi- Crossed Out Swastika Embroidered Patch",
+                "variety": "Premium",
+                "rating": "",
+                "origin": "External",
+                "rarity": "",
+                "details": "3\" patch with iron on backing",
+                "notes": "Worth getting.",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 10
+            },
+            "product-1750970205180": {
+                "id": "product-1750970205180",
+                "name": "American Flag Lapel Pin",
+                "type": "Merch",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://www.agentgearusa.com/product/american-flag-lapel-pin/",
+                "image": "product5.jpg",
+                "additionalImages": [],
+                "description": "American Flag Lapel Pin",
+                "variety": "Premium",
+                "rating": "",
+                "origin": "External",
+                "rarity": "",
+                "details": "American Flag Lapel Pin",
+                "notes": "Nice Flag",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 11
+            },
+            "product-1750970582979": {
+                "id": "product-1750970582979",
+                "name": "Proud American Flag Hat/Lapel Pin",
+                "type": "Merch",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://store.vetfriends.com/proud-american-lapel-pin/",
+                "image": "product3.jpg",
+                "additionalImages": [],
+                "description": "Proud American Flag Hat/Lapel Pin",
+                "variety": "Premium",
+                "rating": "",
+                "origin": "External",
+                "rarity": "",
+                "details": "Proud American Flag Hat/Lapel Pin",
+                "notes": "",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 12
+            },
             "product-1750971071747": {
                 "id": "product-1750971071747",
                 "name": "Anti Nazi Crossed Out Swastika Enamel Pin",
-                "type": "Anti-Nazi",
+                "type": "Merch",
                 "status": "available",
                 "delivery": "digital",
                 "digitalContent": "https://www.deadrockers.net/products/anti-nazi-crossed-out-swastika-enamel-pin",
@@ -190,22 +318,22 @@
                 "additionalImages": [],
                 "description": "Anti Nazi Crossed Out Swastika Enamel Pin",
                 "variety": "Premium",
-                "rating": "4.8/5",
+                "rating": "",
                 "origin": "External",
-                "rarity": "Standard",
+                "rarity": "",
                 "details": "Anti Nazi Crossed Out Swastika Enamel Pin",
                 "notes": "",
                 "packOptions": [],
                 "enableHoverImage": false,
                 "hoverImage": "",
                 "hidden": false,
-                "displayOrder": 3
+                "displayOrder": 13
             }
         }
     },
     "navigation": [
         {
-            "name": "Our Collections",
+            "name": "Links",
             "url": "#products"
         },
         {
@@ -217,20 +345,13 @@
             "url": "#about"
         }
     ],
-    "friendLinks": [
-        {
-            "name": "StrainNavigator",
-            "url": "https://www.strainnavigator.com/",
-            "image": "img/friends/Strain_Navigator_Logo.jpg",
-            "description": "Your ultimate cannabis growing assistant"
-        }
-    ],
+    "friendLinks": [],
     "friendLinksShowcase": {
         "enabled": false,
         "style": "cards",
         "title": "Friends and Sponsors"
     },
-    "showFooterFriendLinks": true,
+    "showFooterFriendLinks": false,
     "advanced": {
         "enableShop": false,
         "enableLocalStorage": true,
@@ -238,8 +359,8 @@
         "externalCheckoutUrl": "",
         "analyticsId": "",
         "orderEmail": "contact@realcharliebravo.com",
-        "enableAgeCheck": true,
-        "ageCheckMinimum": 21,
+        "enableAgeCheck": false,
+        "ageCheckMinimum": 18,
         "ageRedirectUrl": "https://www.google.com"
     }
 };

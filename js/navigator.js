@@ -40,31 +40,68 @@ class GeneticsTreeVisualizer {
         }
     }
     
-    async loadStrainData() {
-        try {
-            const response = await fetch(this.config.dataUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const data = await response.json();
-            
-            // Store tree data
-            this.strainTree = data.strainTree || { name: "Error", children: [] };
-            
-            // Create descriptions object from strains array
-            this.strainDescriptions = {};
-            if (data.strains) {
-                data.strains.forEach(strain => {
-                    this.strainDescriptions[strain.name] = strain.description;
-                });
-            }
-            
-            return data;
-        } catch (error) {
-            console.error('Error loading strain data:', error);
-            throw error;
-        }
-    }
+	async loadStrainData() {
+		try {
+			const response = await fetch(this.config.dataUrl);
+			if (!response.ok) {
+				throw new Error(`HTTP error! Status: ${response.status}`);
+			}
+			const data = await response.json();
+			
+			// Store tree data
+			this.strainTree = data.strainTree || { name: "Error", children: [] };
+			
+			// Only include these 6 available strains
+			const availableStrains = [
+				'Pink Pickles',
+				'Berry Outlaw', 
+				'Pickle Bandit',
+				'Pink Cloudberry Bx1 (Pink Zydonia F1)',
+				'Remo Chemo x Mango Bubba F2',
+				'PINK APEX'
+			];
+			
+			// Create descriptions object from available strains only
+			this.strainDescriptions = {};
+			if (data.strains) {
+				data.strains.forEach(strain => {
+					if (availableStrains.includes(strain.name)) {
+						this.strainDescriptions[strain.name] = strain.description;
+					}
+				});
+			}
+			
+			// Filter the tree to only show available strains
+			this.strainTree = this.filterTreeForAvailableStrains(this.strainTree, availableStrains);
+			
+			return data;
+		} catch (error) {
+			console.error('Error loading strain data:', error);
+			throw error;
+		}
+	}
+
+	filterTreeForAvailableStrains(node, availableStrains) {
+		if (!node.children || node.children.length === 0) {
+			// Leaf node - check if it's in available list
+			return availableStrains.includes(node.name) ? node : null;
+		}
+		
+		// Parent node - filter children
+		const filteredChildren = node.children
+			.map(child => this.filterTreeForAvailableStrains(child, availableStrains))
+			.filter(child => child !== null);
+		
+		// Only keep parent nodes that have children after filtering
+		if (filteredChildren.length > 0) {
+			return {
+				...node,
+				children: filteredChildren
+			};
+		}
+		
+		return null;
+	}
     
     initializeVisualization() {
         const treeElement = document.getElementById(this.config.treeElementId);
