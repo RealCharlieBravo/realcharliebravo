@@ -1801,11 +1801,17 @@ function createProductCard(product) {
     }
     console.log(`[CARD] ${product.name}: final="${imagePath}"`);
 
-    // Fallback: extract YouTube thumbnail if digitalContent is a YouTube URL
+    // Fallback: get YouTube thumbnail for video products
     if (!imagePath && product.digitalContent) {
-        const ytMatch = product.digitalContent.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
-        if (ytMatch && ytMatch[1]) {
-            imagePath = `https://i.ytimg.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+        // For delivery: "youtube", digitalContent is just the video ID
+        if (product.delivery === 'youtube') {
+            imagePath = `https://i.ytimg.com/vi/${product.digitalContent}/hqdefault.jpg`;
+        } else {
+            // For other products, try to extract video ID from URL
+            const ytMatch = product.digitalContent.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
+            if (ytMatch && ytMatch[1]) {
+                imagePath = `https://i.ytimg.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+            }
         }
     }
 
