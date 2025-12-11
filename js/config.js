@@ -8,7 +8,7 @@ window.siteConfig = {
         "logo": "img/logo.jpg",
         "heroBackground": "img/hero-bg.jpg",
         "socialPreview": "img/social-preview.jpg",
-        "showHeroText": true,
+        "showHeroText": false,
         "email": "contact@realcharliebravo.com",
         "socialLinks": [
             {
