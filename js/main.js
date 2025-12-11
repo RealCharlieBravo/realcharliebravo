@@ -1736,6 +1736,8 @@ function createProductCard(product) {
     // Add delivery type attribute for styling
     if (product.delivery === 'digital') {
         card.setAttribute('data-delivery', 'digital');
+    } else if (product.delivery === 'youtube') {
+        card.setAttribute('data-delivery', 'youtube');
     }
     
     // Match product type to category
@@ -1799,8 +1801,51 @@ function createProductCard(product) {
         imagePath = 'img/' + imagePath;
     }
     
+    // Check if this is a YouTube video card
+    if (product.delivery === 'youtube' && product.digitalContent) {
+        // Extract video ID from URL or use directly if already an ID
+        let videoId = product.digitalContent;
+        const urlPatterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+            /^([a-zA-Z0-9_-]{11})$/
+        ];
+        for (const pattern of urlPatterns) {
+            const match = videoId.match(pattern);
+            if (match) {
+                videoId = match[1];
+                break;
+            }
+        }
+        const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+        card.classList.add('youtube-card');
+        card.innerHTML += `
+            <div class="youtube-container" data-video-id="${videoId}">
+                <img src="${thumbnailUrl}" alt="${product.name}" class="youtube-thumbnail">
+                <div class="youtube-play-overlay">
+                    <svg class="play-icon" viewBox="0 0 68 48" width="68" height="48">
+                        <path class="play-icon-bg" d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="#f00"></path>
+                        <path d="M 45,24 27,14 27,34" fill="#fff"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">${product.name}</h3>
+                <span class="product-type">${product.type}</span>
+                <p class="card-description">${(product.description || '').split('\n')[0]}</p>
+            </div>
+        `;
+        // Remove the default click handler for YouTube cards and add embed handler
+        card.removeEventListener('click', function() { openProductModal(product); });
+        card.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const container = card.querySelector('.youtube-container');
+            if (container && !container.querySelector('iframe')) {
+                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;position:absolute;top:0;left:0;"></iframe>`;
+            }
+        });
     // Check if this is a text-based card (no image)
-    if (product.cardStyle === 'text') {
+    } else if (product.cardStyle === 'text') {
         // Text-based card with gradient background
         card.classList.add('text-card');
         card.style.setProperty('--card-bg', product.cardBackground || 'linear-gradient(135deg, #667eea, #764ba2)');
