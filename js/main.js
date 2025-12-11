@@ -1736,8 +1736,6 @@ function createProductCard(product) {
     // Add delivery type attribute for styling
     if (product.delivery === 'digital') {
         card.setAttribute('data-delivery', 'digital');
-    } else if (product.delivery === 'youtube') {
-        card.setAttribute('data-delivery', 'youtube');
     }
     
     // Match product type to category
@@ -1797,55 +1795,28 @@ function createProductCard(product) {
     
     // Simply prepend "img/" if needed and let browser handle missing images
     let imagePath = product.image || '';
+    console.log(`[CARD] ${product.name}: image="${product.image}" imagePath="${imagePath}"`);
     if (imagePath && !imagePath.startsWith('img/') && !imagePath.startsWith('/') && !imagePath.startsWith('http')) {
         imagePath = 'img/' + imagePath;
     }
-    
-    // Check if this is a YouTube video card
-    if (product.delivery === 'youtube' && product.digitalContent) {
-        // Extract video ID from URL or use directly if already an ID
-        let videoId = product.digitalContent;
-        const urlPatterns = [
-            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-            /^([a-zA-Z0-9_-]{11})$/
-        ];
-        for (const pattern of urlPatterns) {
-            const match = videoId.match(pattern);
-            if (match) {
-                videoId = match[1];
-                break;
-            }
+    console.log(`[CARD] ${product.name}: final="${imagePath}"`);
+
+    // Fallback: extract YouTube thumbnail if digitalContent is a YouTube URL
+    if (!imagePath && product.digitalContent) {
+        const ytMatch = product.digitalContent.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
+        if (ytMatch && ytMatch[1]) {
+            imagePath = `https://i.ytimg.com/vi/${ytMatch[1]}/hqdefault.jpg`;
         }
-        const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-        card.classList.add('youtube-card');
-        card.innerHTML += `
-            <div class="youtube-container" data-video-id="${videoId}">
-                <img src="${thumbnailUrl}" alt="${product.name}" class="youtube-thumbnail">
-                <div class="youtube-play-overlay">
-                    <svg class="play-icon" viewBox="0 0 68 48" width="68" height="48">
-                        <path class="play-icon-bg" d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="#f00"></path>
-                        <path d="M 45,24 27,14 27,34" fill="#fff"></path>
-                    </svg>
-                </div>
-            </div>
-            <div class="card-content">
-                <h3 class="card-title">${product.name}</h3>
-                <span class="product-type">${product.type}</span>
-                <p class="card-description">${(product.description || '').split('\n')[0]}</p>
-            </div>
-        `;
-        // Remove the default click handler for YouTube cards and add embed handler
-        card.removeEventListener('click', function() { openProductModal(product); });
-        card.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const container = card.querySelector('.youtube-container');
-            if (container && !container.querySelector('iframe')) {
-                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width:100%;height:100%;position:absolute;top:0;left:0;"></iframe>`;
-            }
-        });
+    }
+
+    // Final fallback to placeholder if still no image
+    if (!imagePath) {
+        const encodedName = encodeURIComponent(product.name || 'Item');
+        imagePath = `https://via.placeholder.com/400x300/1a1a1a/ffffff?text=${encodedName}`;
+    }
+
     // Check if this is a text-based card (no image)
-    } else if (product.cardStyle === 'text') {
+    if (product.cardStyle === 'text') {
         // Text-based card with gradient background
         card.classList.add('text-card');
         card.style.setProperty('--card-bg', product.cardBackground || 'linear-gradient(135deg, #667eea, #764ba2)');
@@ -2052,43 +2023,53 @@ function setupPackOptions(product) {
     // Find the packOptionsTitle element and update its text directly
     const packOptionsTitle = document.getElementById('packOptionsTitle');
     
-    // Check if this is a digital product
-    if (product.delivery === 'digital' && product.digitalContent) {
-        // IMPORTANT: Change title for digital products - this is what was missing
+    // Check if this is a digital product OR a YouTube video
+    if ((product.delivery === 'digital' || product.delivery === 'youtube') && product.digitalContent) {
+        // Determine if this is a YouTube video
+        const isYouTube = product.delivery === 'youtube';
+        const contentUrl = isYouTube
+            ? `https://www.youtube.com/watch?v=${product.digitalContent}`
+            : product.digitalContent;
+
+        // IMPORTANT: Change title for digital/video products
         if (packOptionsTitle) {
-            packOptionsTitle.textContent = 'Access Digital Content:';
+            packOptionsTitle.textContent = isYouTube ? 'Watch Video:' : 'Access Digital Content:';
             packOptionsTitle.style.color = siteConfig.colors.highlight || '#FFD700';
         }
-        
+
         // Create a styled access button for digital content
         const accessButton = document.createElement('button');
         accessButton.className = 'cta-button digital-access-btn';
-        accessButton.innerHTML = `<i class="download-icon"></i> Access Digital Content`;
+        accessButton.innerHTML = isYouTube
+            ? `<i class="play-icon"></i> Watch on YouTube`
+            : `<i class="download-icon"></i> Access Digital Content`;
         accessButton.style.width = '100%';
         accessButton.style.marginTop = '10px';
         accessButton.style.padding = '12px 20px';
         accessButton.style.display = 'flex';
         accessButton.style.alignItems = 'center';
         accessButton.style.justifyContent = 'center';
-        
+
         // Add access info text
         const accessInfo = document.createElement('div');
         accessInfo.className = 'digital-access-info';
-        accessInfo.innerHTML = `<p>Digital product. Click the button below to access content.</p>`;
+        accessInfo.innerHTML = isYouTube
+            ? `<p>Click the button below to watch this video on YouTube.</p>`
+            : `<p>Digital product. Click the button below to access content.</p>`;
         accessInfo.style.marginBottom = '15px';
         accessInfo.style.padding = '10px';
         accessInfo.style.borderRadius = '5px';
         accessInfo.style.backgroundColor = 'rgba(0,0,0,0.1)';
-        
+
         // Add to container
         packOptionsContainer.appendChild(accessInfo);
         packOptionsContainer.appendChild(accessButton);
-        
+
         // Add click handler to open the URL
         accessButton.addEventListener('click', function() {
-            // Open the digital content URL in a new tab
-            window.open(product.digitalContent, '_blank');
-            
+            // Open the content URL in a new tab
+            window.open(contentUrl, '_blank');
+
             // Close the modal
             document.getElementById('productModal').style.display = 'none';
         });
