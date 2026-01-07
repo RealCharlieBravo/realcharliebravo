@@ -289,6 +289,57 @@
             font-weight: 600;
         }
 
+        /* Day Planner Layout */
+        .planner-slot {
+            display: flex;
+            border-bottom: 1px solid #333;
+            min-height: 50px;
+        }
+        .planner-slot.unscheduled {
+            background: linear-gradient(90deg, #3d1515 0%, #1a1a2e 30%);
+            border-bottom: 2px solid #ef4444;
+        }
+        .planner-slot.after-hours {
+            background: linear-gradient(90deg, #3d2a10 0%, #1a1a2e 30%);
+            border-top: 2px solid #f59e0b;
+            border-bottom: none;
+        }
+        .planner-slot.has-customers {
+            background: linear-gradient(90deg, #1a3d1a 0%, #1a1a2e 30%);
+        }
+        .planner-time {
+            width: 80px;
+            flex-shrink: 0;
+            padding: 12px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            border-right: 1px solid #333;
+            display: flex;
+            align-items: flex-start;
+        }
+        .planner-slot.has-customers .planner-time {
+            color: #4ade80;
+        }
+        .planner-slot.unscheduled .planner-time {
+            color: #ef4444;
+        }
+        .planner-slot.after-hours .planner-time {
+            color: #f59e0b;
+        }
+        .planner-cards {
+            flex: 1;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .planner-empty {
+            color: #444;
+            font-size: 14px;
+            padding: 8px;
+        }
+
         /* Form Elements */
         .form-group { margin-bottom: 16px; }
         .form-label { font-size: 14px; color: #888; margin-bottom: 8px; display: block; }
@@ -818,9 +869,8 @@
         let customerFilter = 'active';
         let searchQuery = '';
 
-        // Time slot state
-        let expandedSlots = {}; // { '7': 'hour'|'30min'|'15min' }
-        const TIME_SLOTS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]; // 7am to 7pm
+        // Time slots for day planner (7am to 7pm)
+        const TIME_SLOTS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
         // Load data
         function loadData() {
@@ -995,25 +1045,7 @@
                 customer.scheduledTime = displayHour + ':00 ' + suffix;
             }
 
-            // Clear all slot expansions for cleaner view
-            expandedSlots = {};
-
             saveData();
-            renderToday();
-        }
-
-        // Toggle slot expansion
-        function toggleSlot(hour) {
-            const current = expandedSlots[hour];
-            if (!current) {
-                expandedSlots[hour] = 'hour';
-            } else if (current === 'hour') {
-                expandedSlots[hour] = '30min';
-            } else if (current === '30min') {
-                expandedSlots[hour] = '15min';
-            } else {
-                delete expandedSlots[hour];
-            }
             renderToday();
         }
 
@@ -1120,7 +1152,7 @@
             showToast('Logged: ' + labels[result]);
         }
 
-        // Render today's jobs with time slot scheduler
+        // Render today's jobs - simple day planner view
         function renderToday() {
             const container = document.getElementById('today-jobs');
 
@@ -1145,79 +1177,43 @@
 
             let html = '';
 
-            // Unscheduled section - always show expanded if has customers
+            // Unscheduled section at top
             const unscheduled = customers.filter(c => !c.isCommercial && !parseTimeToHour(c.scheduledTime));
-            if (unscheduled.length > 0) {
-                html += `
-                    <div class="time-section expanded">
-                        <div class="time-section-header unscheduled">
-                            <div>
-                                <span class="time-label">Unscheduled</span>
-                                <span class="time-count">${unscheduled.length}</span>
-                            </div>
-                        </div>
-                        <div class="time-section-content">
-                            ${unscheduled.map(c => renderCompactCard(c)).join('')}
-                        </div>
+            html += `
+                <div class="planner-slot unscheduled">
+                    <div class="planner-time">Unscheduled</div>
+                    <div class="planner-cards">
+                        ${unscheduled.length === 0 ? '<div class="planner-empty">—</div>' : ''}
+                        ${unscheduled.map(c => renderCompactCard(c)).join('')}
                     </div>
-                `;
-            }
+                </div>
+            `;
 
-            // Hour slots from 7am to 7pm - only show slots with customers OR if explicitly expanded
+            // All hour slots from 7am to 7pm - ALWAYS visible
             TIME_SLOTS.forEach(hour => {
                 const slotCustomers = getCustomersForSlot(hour, customers);
-                const hasCustomers = slotCustomers.length > 0;
-                const isExpanded = expandedSlots[hour];
-
-                // Skip empty slots that aren't expanded
-                if (!hasCustomers && !isExpanded) return;
-
                 html += `
-                    <div class="time-section ${hasCustomers || isExpanded ? 'expanded' : ''}">
-                        <div class="time-section-header has-customers" onclick="toggleSlot(${hour})">
-                            <div>
-                                <span class="time-label">${formatHourAMPM(hour)}</span>
-                                ${slotCustomers.length > 0 ? `<span class="time-count">${slotCustomers.length}</span>` : ''}
-                            </div>
-                            <span class="time-expand">▼</span>
-                        </div>
-                        <div class="time-section-content">
+                    <div class="planner-slot ${slotCustomers.length > 0 ? 'has-customers' : ''}">
+                        <div class="planner-time">${formatHourAMPM(hour)}</div>
+                        <div class="planner-cards">
+                            ${slotCustomers.length === 0 ? '<div class="planner-empty">—</div>' : ''}
                             ${slotCustomers.map(c => renderCompactCard(c)).join('')}
-                            ${isExpanded === '30min' || isExpanded === '15min' ? `
-                                <div class="time-subslot">
-                                    <span style="color:#4ade80;">${formatHour(hour).replace(':00', ':30')}</span>
-                                </div>
-                            ` : ''}
-                            ${isExpanded === '15min' ? `
-                                <div class="time-subslot">
-                                    <span style="color:#888;">${formatHour(hour).replace(':00', ':15')}</span>
-                                </div>
-                                <div class="time-subslot">
-                                    <span style="color:#888;">${formatHour(hour).replace(':00', ':45')}</span>
-                                </div>
-                            ` : ''}
                         </div>
                     </div>
                 `;
             });
 
-            // Commercial after-hours section - only show if has customers
+            // Commercial after-hours section at bottom
             const commercial = customers.filter(c => c.isCommercial);
-            if (commercial.length > 0) {
-                html += `
-                    <div class="time-section expanded">
-                        <div class="time-section-header after-hours">
-                            <div>
-                                <span class="time-label">After Hours (Commercial)</span>
-                                <span class="time-count">${commercial.length}</span>
-                            </div>
-                        </div>
-                        <div class="time-section-content">
-                            ${commercial.map(c => renderCompactCard(c, false)).join('')}
-                        </div>
+            html += `
+                <div class="planner-slot after-hours">
+                    <div class="planner-time">After Hours</div>
+                    <div class="planner-cards">
+                        ${commercial.length === 0 ? '<div class="planner-empty">—</div>' : ''}
+                        ${commercial.map(c => renderCompactCard(c, false)).join('')}
                     </div>
-                `;
-            }
+                </div>
+            `;
 
             container.innerHTML = html;
         }
