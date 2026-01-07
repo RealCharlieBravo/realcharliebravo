@@ -294,6 +294,80 @@
         }
         .toast.show { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Pest Encyclopedia */
+        .pest-card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+        }
+        .pest-card:active { background: #1e2a4a; }
+        .pest-icon {
+            font-size: 40px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a2e;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+        .pest-card-info { flex: 1; }
+        .pest-card-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .pest-card-desc { font-size: 13px; color: #888; }
+        .pest-card-arrow { color: #666; font-size: 20px; }
+
+        /* Pest Detail */
+        .pest-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .pest-detail-icon {
+            font-size: 48px;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #16213e;
+            border-radius: 16px;
+        }
+        .pest-detail-title { font-size: 24px; font-weight: 600; }
+        .pest-detail-latin { font-size: 14px; color: #888; font-style: italic; }
+        .pest-section {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .pest-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4ade80;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .pest-section-content { font-size: 14px; line-height: 1.6; color: #ccc; }
+        .pest-section-content ul { margin-left: 16px; margin-top: 8px; }
+        .pest-section-content li { margin-bottom: 6px; }
+        .pest-warning {
+            background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+            border-left: 4px solid #ef4444;
+        }
+        .pest-warning .pest-section-title { color: #fca5a5; }
+        .pest-tip {
+            background: linear-gradient(135deg, #14532d 0%, #166534 100%);
+            border-left: 4px solid #4ade80;
+        }
     </style>
 </head>
 <body>
@@ -321,6 +395,11 @@
         <div id="referral-list"></div>
     </div>
 
+    <!-- Pests Encyclopedia View -->
+    <div id="view-pests" class="view">
+        <div id="pest-list"></div>
+    </div>
+
     <!-- Bottom Tabs -->
     <div class="tabs">
         <button class="tab active" onclick="showView('today')">
@@ -334,6 +413,10 @@
         <button class="tab" onclick="showView('referrals')">
             <span class="tab-icon">⭐</span>
             Referrals
+        </button>
+        <button class="tab" onclick="showView('pests')">
+            <span class="tab-icon">📚</span>
+            Pests
         </button>
     </div>
 
@@ -426,6 +509,17 @@
             </div>
             <div id="history-list"></div>
             <button class="submit-btn" style="margin-top:16px" onclick="closeModal('history');startJob(currentCustomerId)">Start New Job</button>
+        </div>
+    </div>
+
+    <!-- Pest Detail Modal -->
+    <div id="modal-pest" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Pest Info</span>
+                <button class="modal-close" onclick="closeModal('pest')">&times;</button>
+            </div>
+            <div id="pest-detail-content"></div>
         </div>
     </div>
 
@@ -828,8 +922,335 @@
             setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
+        // Pest Encyclopedia Data (PA-specific)
+        const pestData = {
+            mice: {
+                icon: '🐭',
+                name: 'House Mice',
+                latin: 'Mus musculus',
+                desc: 'Most common indoor rodent pest',
+                habits: [
+                    'Nocturnal - most active at night',
+                    'Can squeeze through holes as small as a dime (1/4 inch)',
+                    'Nest within 10-30 feet of food source',
+                    'Produce 40-100 droppings per day',
+                    'Activity increases in fall/winter seeking warmth',
+                    'Can climb rough vertical surfaces'
+                ],
+                signs: [
+                    'Small dark droppings (1/8-1/4 inch)',
+                    'Gnaw marks on food packaging, wood, wires',
+                    'Greasy rub marks along walls',
+                    'Scratching sounds in walls at night',
+                    'Shredded paper/fabric for nesting'
+                ],
+                removal: [
+                    'Seal ALL entry points - check foundation, pipes, vents',
+                    'Snap traps along walls (trigger toward wall)',
+                    'Bait stations for ongoing control',
+                    'Remove food sources - store in sealed containers',
+                    'NEVER use poison inside - dead mice cause odor'
+                ],
+                tips: 'Mice can have 5-10 litters per year. One mouse means more are coming. Treat aggressively.'
+            },
+            rats: {
+                icon: '🐀',
+                name: 'Norway Rats',
+                latin: 'Rattus norvegicus',
+                desc: 'Larger rodent, burrows near foundations',
+                habits: [
+                    'Burrow under foundations, slabs, debris piles',
+                    'Need water daily - stay near water sources',
+                    'Can chew through almost anything except steel',
+                    'Cautious of new objects (neophobic) - may avoid traps initially',
+                    'Travel same paths repeatedly creating "runways"',
+                    'Excellent swimmers - can enter through toilets'
+                ],
+                signs: [
+                    'Large droppings (1/2-3/4 inch, capsule-shaped)',
+                    'Burrow holes 2-4 inches diameter near foundations',
+                    'Grease marks and runways along walls',
+                    'Large gnaw marks on wood, plastic, even concrete',
+                    'Musky odor in enclosed spaces'
+                ],
+                removal: [
+                    'Locate and destroy burrows',
+                    'Snap traps or electronic traps (larger than mouse traps)',
+                    'Bait stations with rodenticide blocks',
+                    'Seal entry points with steel wool + caulk',
+                    'Eliminate water sources',
+                    'Clear debris and vegetation from foundation'
+                ],
+                tips: 'Rats are cautious - leave traps unset for a few days to let them get comfortable, then set them.'
+            },
+            squirrels: {
+                icon: '🐿️',
+                name: 'Gray Squirrels',
+                latin: 'Sciurus carolinensis',
+                desc: 'Attic invaders, major chewing damage',
+                habits: [
+                    'Active during day (unlike most pests)',
+                    'Enter through roof vents, soffits, fascia gaps',
+                    'Store food in attics - attract other pests',
+                    'Gnaw constantly to wear down teeth',
+                    'Two breeding seasons: Feb-March, June-July',
+                    'Can jump 8-10 feet horizontally to structures'
+                ],
+                signs: [
+                    'Scratching/running sounds in attic during day',
+                    'Chewed holes in soffits, fascia, roof vents',
+                    'Gnawed wires (FIRE HAZARD)',
+                    'Nesting material - leaves, insulation, debris',
+                    'Droppings similar to rats but more rounded'
+                ],
+                removal: [
+                    'One-way exclusion doors at entry points',
+                    'Trim tree branches 6-8 feet from roof',
+                    'Repair all entry points with metal flashing',
+                    'Live cage traps if exclusion not possible',
+                    'Check for babies before sealing (spring/summer)'
+                ],
+                warning: 'Squirrel wire chewing causes house fires. Always check wiring in attics with squirrel activity.',
+                tips: 'Squirrels will chew back through wood repairs. Always use metal.'
+            },
+            bats: {
+                icon: '🦇',
+                name: 'Big Brown Bats',
+                latin: 'Eptesicus fuscus',
+                desc: 'Protected species - timing restrictions apply',
+                habits: [
+                    'Colonial roosters - one bat means a colony',
+                    'Enter through gaps as small as 3/8 inch',
+                    'Return to same roost year after year',
+                    'Hibernate in winter (Oct-March in PA)',
+                    'Single pup born May-June, flies by August',
+                    'Beneficial - eat thousands of insects nightly'
+                ],
+                signs: [
+                    'Guano (droppings) piles near entry points',
+                    'Guano is shiny, crumbles to powder (insect parts)',
+                    'Staining/grease marks at entry points',
+                    'Squeaking sounds at dusk',
+                    'Bats flying at dusk from specific spots'
+                ],
+                removal: [
+                    'ONE-WAY EXCLUSION ONLY - never trap or kill',
+                    'Install exclusion tubes/netting at entry points',
+                    'Seal all other potential entries first',
+                    'Wait 5-7 days, then seal exclusion point',
+                    'Clean guano with proper PPE (histoplasmosis risk)'
+                ],
+                warning: 'PA LAW: NO exclusion May 15 - August 1 (maternity season). Mothers cannot be separated from flightless pups. Fines apply.',
+                legalWindow: 'Legal exclusion: March-May 14, August 2-October. Winter: bats hibernating, exclusion ineffective.',
+                tips: 'Always do a full inspection at dusk to find ALL entry points before starting exclusion.'
+            },
+            raccoons: {
+                icon: '🦝',
+                name: 'Raccoons',
+                latin: 'Procyon lotor',
+                desc: 'Attic denners, trash raiders, rabies vector',
+                habits: [
+                    'Excellent climbers - can scale most surfaces',
+                    'Strong - can tear off soffits, vents, shingles',
+                    'Denning season: March-May (babies born April)',
+                    'Nocturnal but may be seen during day',
+                    'Use "latrines" - communal defecation sites',
+                    'Can carry rabies, distemper, roundworm'
+                ],
+                signs: [
+                    'Large torn openings in roof/soffit',
+                    'Heavy thumping sounds in attic',
+                    'Large droppings in latrine piles',
+                    'Knocked over trash cans',
+                    'Tracks: hand-like prints'
+                ],
+                removal: [
+                    'Check for babies FIRST (March-July)',
+                    'Remove babies by hand, use as bait for mother',
+                    'Live cage traps with marshmallows, cat food',
+                    'One-way doors only if no babies',
+                    'Heavy-duty repairs - 16-gauge hardware cloth minimum',
+                    'Clean latrine sites (roundworm eggs dangerous)'
+                ],
+                warning: 'Raccoon roundworm (Baylisascaris) in feces is extremely dangerous. Wear N95 mask and disposable coveralls when cleaning latrines.',
+                tips: 'Raccoons are smart and strong. Cheap repairs will fail. Use heavy materials and professional-grade fasteners.'
+            },
+            insects: {
+                icon: '🪳',
+                name: 'General Insects',
+                latin: 'Various species',
+                desc: 'Roaches, ants, spiders, centipedes, etc.',
+                habits: [
+                    'Most seek moisture - check plumbing, basements',
+                    'Entry points: cracks, gaps, drains, vents',
+                    'German roaches: kitchen/bathroom (brought in)',
+                    'American roaches: basement/sewer (come from outside)',
+                    'Ants follow pheromone trails - find the trail',
+                    'Spiders = other pest prey present'
+                ],
+                signs: [
+                    'Live or dead insects',
+                    'Droppings (roach: pepper-like specks)',
+                    'Egg cases, shed skins',
+                    'Ant trails along edges',
+                    'Webbing in corners'
+                ],
+                removal: [
+                    'Identify species first - treatment varies',
+                    'Gel baits for roaches (kitchen, bathroom)',
+                    'Granular baits for exterior ants',
+                    'Residual sprays on exterior perimeter',
+                    'Dust in wall voids, attics',
+                    'Seal entry points, fix moisture issues'
+                ],
+                tips: 'Heavy roach infestation often means a bigger sanitation issue. Address cleanliness along with treatment.'
+            },
+            birds: {
+                icon: '🐦',
+                name: 'Pest Birds',
+                latin: 'Various species',
+                desc: 'Pigeons, starlings, sparrows - droppings and noise',
+                habits: [
+                    'Pigeons: ledges, roofs, signs, HVAC units',
+                    'Starlings/sparrows: vents, gaps, soffits',
+                    'Return to same nesting sites repeatedly',
+                    'Droppings are acidic - damage surfaces',
+                    'Nests attract mites, beetles, flies',
+                    'Protected species vary - know before removal'
+                ],
+                signs: [
+                    'Droppings accumulation',
+                    'Nesting material in vents/gaps',
+                    'Noise: cooing, chirping, scratching',
+                    'Feathers and debris',
+                    'Mites or beetles near roosting areas'
+                ],
+                removal: [
+                    'Exclusion netting on ledges, under eaves',
+                    'Bird spikes on flat surfaces',
+                    'Vent covers with proper screening',
+                    'Remove nests and clean droppings (PPE required)',
+                    'Scare devices: limited effectiveness'
+                ],
+                warning: 'Bird droppings carry histoplasmosis, cryptococcosis. Always wear respirator (N95 minimum) during cleanup.',
+                tips: 'Starlings and sparrows are not protected. Pigeons are not protected. Do NOT harm native songbirds - check species first.'
+            },
+            other: {
+                icon: '❓',
+                name: 'Other Wildlife',
+                latin: 'Various species',
+                desc: 'Opossums, skunks, groundhogs, snakes',
+                habits: [
+                    'Opossums: under porches, decks, sheds - nomadic',
+                    'Skunks: burrow under structures - nocturnal',
+                    'Groundhogs: extensive burrow systems near foundations',
+                    'Snakes: follow prey (rodents) - often means mouse problem'
+                ],
+                signs: [
+                    'Opossum: hissing, playing dead, varied droppings',
+                    'Skunk: odor, small cone-shaped digging in lawn',
+                    'Groundhog: large burrow mounds, garden damage',
+                    'Snake: shed skins, S-shaped tracks in dust'
+                ],
+                removal: [
+                    'Opossums: usually leave on their own, exclude from structure',
+                    'Skunks: one-way door exclusion, live trap (careful!)',
+                    'Groundhogs: live trap, burrow fumigation',
+                    'Snakes: remove rodent food source, seal entry points'
+                ],
+                tips: 'Snakes in a house almost always mean a rodent problem. Solve the mice, solve the snakes.'
+            }
+        };
+
+        // Render pest list
+        function renderPests() {
+            const container = document.getElementById('pest-list');
+            let html = '<p style="color:#888;margin-bottom:16px;font-size:14px;">Tap a pest for detailed info, habits, and removal tips.</p>';
+
+            for (const [key, pest] of Object.entries(pestData)) {
+                html += `
+                    <div class="pest-card" onclick="showPestDetail('${key}')">
+                        <div class="pest-icon">${pest.icon}</div>
+                        <div class="pest-card-info">
+                            <div class="pest-card-name">${pest.name}</div>
+                            <div class="pest-card-desc">${pest.desc}</div>
+                        </div>
+                        <div class="pest-card-arrow">›</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Show pest detail
+        function showPestDetail(key) {
+            const pest = pestData[key];
+            if (!pest) return;
+
+            let html = `
+                <div class="pest-detail-header">
+                    <div class="pest-detail-icon">${pest.icon}</div>
+                    <div>
+                        <div class="pest-detail-title">${pest.name}</div>
+                        <div class="pest-detail-latin">${pest.latin}</div>
+                    </div>
+                </div>
+            `;
+
+            if (pest.warning) {
+                html += `
+                    <div class="pest-section pest-warning">
+                        <div class="pest-section-title">⚠️ Warning</div>
+                        <div class="pest-section-content">${pest.warning}</div>
+                    </div>
+                `;
+            }
+
+            if (pest.legalWindow) {
+                html += `
+                    <div class="pest-section" style="border-left: 4px solid #3b82f6;">
+                        <div class="pest-section-title" style="color: #93c5fd;">📅 Legal Timing (PA)</div>
+                        <div class="pest-section-content">${pest.legalWindow}</div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="pest-section">
+                    <div class="pest-section-title">Habits & Behavior</div>
+                    <div class="pest-section-content">
+                        <ul>${pest.habits.map(h => `<li>${h}</li>`).join('')}</ul>
+                    </div>
+                </div>
+
+                <div class="pest-section">
+                    <div class="pest-section-title">Signs of Infestation</div>
+                    <div class="pest-section-content">
+                        <ul>${pest.signs.map(s => `<li>${s}</li>`).join('')}</ul>
+                    </div>
+                </div>
+
+                <div class="pest-section">
+                    <div class="pest-section-title">Removal Methods</div>
+                    <div class="pest-section-content">
+                        <ul>${pest.removal.map(r => `<li>${r}</li>`).join('')}</ul>
+                    </div>
+                </div>
+
+                <div class="pest-section pest-tip">
+                    <div class="pest-section-title">💡 Pro Tip</div>
+                    <div class="pest-section-content">${pest.tips}</div>
+                </div>
+            `;
+
+            document.getElementById('pest-detail-content').innerHTML = html;
+            openModal('pest');
+        }
+
         // Init
         loadData();
+        renderPests();
     </script>
 </body>
 </html>
