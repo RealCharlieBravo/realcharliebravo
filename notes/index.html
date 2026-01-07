@@ -108,6 +108,7 @@
         .job-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
         .job-address { font-size: 14px; color: #888; margin-bottom: 4px; }
         .job-meta { font-size: 12px; color: #666; }
+        .job-pests { font-size: 16px; margin-top: 6px; letter-spacing: 2px; }
         .job-badge {
             display: inline-block;
             font-size: 10px;
@@ -688,6 +689,16 @@
             return data.jobs.find(j => j.customerId === customerId && j.status === 'draft');
         }
 
+        // Get pest icons for customer (from all their jobs)
+        const pestIcons = { mice: '🐭', rats: '🐀', squirrels: '🐿️', bats: '🦇', raccoons: '🦝', insects: '🪳', birds: '🐦', other: '❓' };
+        function getCustomerPests(customerId) {
+            const allPests = new Set();
+            data.jobs.filter(j => j.customerId === customerId).forEach(j => {
+                (j.pests || []).forEach(p => allPests.add(p));
+            });
+            return Array.from(allPests).map(p => pestIcons[p] || '').join('');
+        }
+
         // Render today's jobs
         function renderToday() {
             const container = document.getElementById('today-jobs');
@@ -711,6 +722,7 @@
                 );
                 const draftJob = getDraftJob(c.id);
                 const totalVisits = data.jobs.filter(j => j.customerId === c.id && j.status === 'completed').length;
+                const pests = getCustomerPests(c.id);
 
                 let statusClass = '';
                 let badge = '';
@@ -727,6 +739,7 @@
                         <div class="job-name">${c.name}${badge}</div>
                         ${c.address ? `<div class="job-address">${c.address}</div>` : ''}
                         <div class="job-meta">${c.phone || 'No phone'} · ${totalVisits} visits</div>
+                        ${pests ? `<div class="job-pests">${pests}</div>` : ''}
                         <div class="job-actions">
                             ${draftJob ?
                                 `<button class="job-btn resume" onclick="resumeJob('${draftJob.id}')">Resume</button>` :
@@ -775,12 +788,32 @@
             customers.forEach(c => {
                 const jobCount = data.jobs.filter(j => j.customerId === c.id && j.status === 'completed').length;
                 const draftJob = getDraftJob(c.id);
+                const pests = getCustomerPests(c.id);
+
+                let statusClass = c.archived ? 'archived' : '';
+                let badge = '';
+                if (draftJob && !c.archived) {
+                    statusClass = 'has-draft';
+                    badge = '<span class="job-badge draft">In Progress</span>';
+                }
 
                 html += `
-                    <div class="job-card ${c.archived ? 'archived' : ''}" onclick="editCustomer('${c.id}')">
-                        <div class="job-name">${c.name}${draftJob ? '<span class="job-badge draft">Draft</span>' : ''}</div>
+                    <div class="job-card ${statusClass}">
+                        <div class="job-name">${c.name}${badge}</div>
                         ${c.address ? `<div class="job-address">${c.address}</div>` : ''}
                         <div class="job-meta">${c.phone || 'No phone'} · ${jobCount} visits${c.archived ? ' · Archived' : ''}</div>
+                        ${pests ? `<div class="job-pests">${pests}</div>` : ''}
+                        <div class="job-actions">
+                            ${c.archived ?
+                                `<button class="job-btn view" onclick="editCustomer('${c.id}')">Unarchive</button>` :
+                                (draftJob ?
+                                    `<button class="job-btn resume" onclick="resumeJob('${draftJob.id}')">Resume</button>` :
+                                    `<button class="job-btn start" onclick="startJob('${c.id}')">Start Visit</button>`
+                                )
+                            }
+                            <button class="job-btn view" onclick="viewHistory('${c.id}')">History</button>
+                            <button class="job-btn edit" onclick="editCustomer('${c.id}')">Edit</button>
+                        </div>
                     </div>
                 `;
             });
@@ -882,21 +915,28 @@
                     customer.phone = phone;
                     customer.notes = notes;
                 }
+                saveData();
+                render();
+                closeModal('customer');
+                showToast('Customer updated');
             } else {
-                data.customers.push({
+                // New customer - add and immediately start a job
+                const newCustomer = {
                     id: Date.now().toString(),
                     name,
                     address,
                     phone,
                     notes,
                     archived: false
-                });
-            }
+                };
+                data.customers.push(newCustomer);
+                saveData();
+                render();
+                closeModal('customer');
 
-            saveData();
-            render();
-            closeModal('customer');
-            showToast(editingCustomerId ? 'Customer updated' : 'Customer added');
+                // Auto-start job for new customer
+                startJob(newCustomer.id);
+            }
         }
 
         // Toggle archive customer
