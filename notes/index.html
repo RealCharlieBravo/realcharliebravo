@@ -50,6 +50,19 @@
         .header-btn:active { background: #444; }
         .header-btn.primary { background: #4ade80; color: #000; }
 
+        /* Search */
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #16213e;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        .search-box:focus { outline: none; border-color: #4ade80; }
+
         /* Tabs */
         .tabs {
             display: flex;
@@ -66,13 +79,13 @@
             padding: 12px 8px;
             text-align: center;
             color: #888;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             border: none;
             background: transparent;
         }
         .tab.active { color: #4ade80; }
-        .tab-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
 
         /* Views */
         .view { display: none; padding: 16px; }
@@ -85,12 +98,26 @@
             padding: 16px;
             margin-bottom: 12px;
             border-left: 4px solid #666;
+            cursor: pointer;
         }
-        .job-card.done { border-left-color: #4ade80; opacity: 0.7; }
+        .job-card:active { background: #1e2a4a; }
+        .job-card.done { border-left-color: #4ade80; }
         .job-card.in-progress { border-left-color: #fbbf24; }
+        .job-card.archived { border-left-color: #666; opacity: 0.5; }
+        .job-card.has-draft { border-left-color: #3b82f6; }
         .job-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
-        .job-address { font-size: 14px; color: #888; margin-bottom: 8px; }
+        .job-address { font-size: 14px; color: #888; margin-bottom: 4px; }
         .job-meta { font-size: 12px; color: #666; }
+        .job-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+        .job-badge.draft { background: #3b82f6; color: #fff; }
+        .job-badge.today { background: #4ade80; color: #000; }
         .job-actions {
             display: flex;
             gap: 8px;
@@ -105,12 +132,15 @@
             cursor: pointer;
         }
         .job-btn.start { background: #4ade80; color: #000; }
+        .job-btn.resume { background: #3b82f6; color: #fff; }
         .job-btn.view { background: #333; color: #fff; }
-        .job-btn.done { background: #666; color: #fff; }
+        .job-btn.edit { background: #333; color: #fff; }
+        .job-btn.archive { background: #991b1b; color: #fff; }
 
         /* Form Elements */
         .form-group { margin-bottom: 16px; }
         .form-label { font-size: 14px; color: #888; margin-bottom: 8px; display: block; }
+        .form-label .optional { font-size: 12px; color: #666; }
         .form-input {
             width: 100%;
             padding: 12px;
@@ -121,7 +151,7 @@
             font-size: 16px;
         }
         .form-input:focus { outline: none; border-color: #4ade80; }
-        textarea.form-input { min-height: 100px; resize: vertical; }
+        textarea.form-input { min-height: 80px; resize: vertical; }
 
         /* Toggle Buttons */
         .toggle-grid {
@@ -154,25 +184,25 @@
             margin-top: 8px;
         }
         .counter-btn {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: none;
             background: #333;
             color: #fff;
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
         }
         .counter-btn:active { background: #444; }
         .counter-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 600;
-            min-width: 40px;
+            min-width: 50px;
             text-align: center;
         }
         .counter-label { color: #888; font-size: 14px; }
 
-        /* Upsale Button */
+        /* Action Buttons */
         .upsale-btn {
             width: 100%;
             padding: 16px;
@@ -187,6 +217,39 @@
         }
         .upsale-btn:active { transform: scale(0.98); }
 
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: #4ade80;
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .submit-btn:active { transform: scale(0.98); }
+        .submit-btn.secondary { background: #333; color: #fff; }
+        .submit-btn.danger { background: #991b1b; color: #fff; }
+
+        /* Auto-save indicator */
+        .autosave-indicator {
+            position: fixed;
+            top: 70px;
+            right: 16px;
+            background: #4ade80;
+            color: #000;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 150;
+        }
+        .autosave-indicator.show { opacity: 1; }
+
         /* Referrals List */
         .referral-card {
             background: #16213e;
@@ -197,7 +260,7 @@
         }
         .referral-date { font-size: 12px; color: #666; }
         .referral-customer { font-size: 16px; font-weight: 600; margin: 4px 0; }
-        .referral-notes { font-size: 14px; color: #888; }
+        .referral-notes { font-size: 14px; color: #888; white-space: pre-line; }
         .referral-actions { margin-top: 12px; display: flex; gap: 8px; }
 
         /* Empty State */
@@ -240,16 +303,19 @@
             background: none;
             border: none;
             color: #888;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
+            padding: 0 8px;
         }
 
         /* Section Header */
         .section-header {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             margin: 20px 0 12px;
             color: #4ade80;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* History */
@@ -260,40 +326,15 @@
             margin-bottom: 8px;
         }
         .history-date { font-size: 12px; color: #4ade80; }
-        .history-work { font-size: 14px; margin-top: 4px; }
-
-        /* Submit Button */
-        .submit-btn {
-            width: 100%;
-            padding: 16px;
-            background: #4ade80;
-            border: none;
-            border-radius: 12px;
-            color: #000;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
+        .history-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
         }
-        .submit-btn:active { transform: scale(0.98); }
-        .submit-btn.secondary { background: #333; color: #fff; }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #4ade80;
-            color: #000;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            z-index: 300;
-            display: none;
-        }
-        .toast.show { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .history-status.draft { background: #3b82f6; color: #fff; }
+        .history-status.completed { background: #4ade80; color: #000; }
+        .history-work { font-size: 14px; margin-top: 4px; color: #ccc; }
 
         /* Pest Encyclopedia */
         .pest-card {
@@ -322,8 +363,6 @@
         .pest-card-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
         .pest-card-desc { font-size: 13px; color: #888; }
         .pest-card-arrow { color: #666; font-size: 20px; }
-
-        /* Pest Detail */
         .pest-detail-header {
             display: flex;
             align-items: center;
@@ -368,6 +407,46 @@
             background: linear-gradient(135deg, #14532d 0%, #166534 100%);
             border-left: 4px solid #4ade80;
         }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4ade80;
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 300;
+            display: none;
+        }
+        .toast.show { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            background: transparent;
+            color: #888;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .filter-tab.active {
+            background: #4ade80;
+            color: #000;
+            border-color: #4ade80;
+        }
     </style>
 </head>
 <body>
@@ -380,13 +459,23 @@
         </div>
     </div>
 
+    <!-- Auto-save indicator -->
+    <div id="autosave" class="autosave-indicator">Saved</div>
+
     <!-- Today View -->
     <div id="view-today" class="view active">
+        <input type="text" class="search-box" placeholder="Search customers..." oninput="filterToday(this.value)">
         <div id="today-jobs"></div>
     </div>
 
     <!-- Customers View -->
     <div id="view-customers" class="view">
+        <input type="text" class="search-box" placeholder="Search customers..." oninput="filterCustomers(this.value)">
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="setCustomerFilter('active')">Active</button>
+            <button class="filter-tab" onclick="setCustomerFilter('archived')">Archived</button>
+            <button class="filter-tab" onclick="setCustomerFilter('all')">All</button>
+        </div>
         <div id="all-customers"></div>
     </div>
 
@@ -428,23 +517,23 @@
                 <button class="modal-close" onclick="closeModal('customer')">&times;</button>
             </div>
             <div class="form-group">
-                <label class="form-label">Customer Name</label>
+                <label class="form-label">Customer Name *</label>
                 <input type="text" id="customer-name" class="form-input" placeholder="John Smith">
             </div>
             <div class="form-group">
-                <label class="form-label">Address</label>
+                <label class="form-label">Address <span class="optional">(optional)</span></label>
                 <input type="text" id="customer-address" class="form-input" placeholder="123 Main St">
             </div>
             <div class="form-group">
-                <label class="form-label">Phone</label>
+                <label class="form-label">Phone <span class="optional">(optional)</span></label>
                 <input type="tel" id="customer-phone" class="form-input" placeholder="555-1234">
             </div>
             <div class="form-group">
-                <label class="form-label">Notes</label>
+                <label class="form-label">Notes <span class="optional">(optional)</span></label>
                 <textarea id="customer-notes" class="form-input" placeholder="Gate code, dog in yard, etc."></textarea>
             </div>
             <button class="submit-btn" onclick="saveCustomer()">Save Customer</button>
-            <button class="submit-btn secondary" id="delete-customer-btn" style="display:none; margin-top:8px;" onclick="deleteCustomer()">Delete Customer</button>
+            <button class="submit-btn secondary" id="archive-customer-btn" style="display:none; margin-top:8px;" onclick="toggleArchiveCustomer()">Archive Customer</button>
         </div>
     </div>
 
@@ -453,7 +542,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <span class="modal-title" id="job-customer-name">Log Work</span>
-                <button class="modal-close" onclick="closeModal('job')">&times;</button>
+                <button class="modal-close" onclick="closeJobModal()">&times;</button>
             </div>
 
             <div class="section-header">Pests Found</div>
@@ -492,11 +581,12 @@
 
             <div class="section-header">Notes</div>
             <div class="form-group">
-                <textarea id="job-notes" class="form-input" placeholder="What did you find? What needs follow-up?"></textarea>
+                <textarea id="job-notes" class="form-input" placeholder="What did you find? What needs follow-up?" oninput="autoSaveJob()"></textarea>
             </div>
 
             <button class="upsale-btn" onclick="referToSpecialist()">⭐ Refer to Specialist</button>
-            <button class="submit-btn" onclick="saveJob()">Complete Job</button>
+            <button class="submit-btn" onclick="completeJob()">✓ Mark Complete</button>
+            <button class="submit-btn secondary" onclick="closeJobModal()">Close (auto-saved)</button>
         </div>
     </div>
 
@@ -508,7 +598,7 @@
                 <button class="modal-close" onclick="closeModal('history')">&times;</button>
             </div>
             <div id="history-list"></div>
-            <button class="submit-btn" style="margin-top:16px" onclick="closeModal('history');startJob(currentCustomerId)">Start New Job</button>
+            <button class="submit-btn" style="margin-top:16px" onclick="closeModal('history');startJob(currentCustomerId)">+ New Visit</button>
         </div>
     </div>
 
@@ -535,8 +625,10 @@
         };
 
         let currentCustomerId = null;
+        let currentJobId = null;
         let editingCustomerId = null;
-        let trapCount = 0;
+        let customerFilter = 'active';
+        let searchQuery = '';
 
         // Load data
         function loadData() {
@@ -544,14 +636,25 @@
             if (saved) {
                 data = JSON.parse(saved);
             }
+            render();
+        }
+
+        // Save data with indicator
+        function saveData(showIndicator = true) {
+            localStorage.setItem('pesttracker', JSON.stringify(data));
+            if (showIndicator) {
+                const indicator = document.getElementById('autosave');
+                indicator.classList.add('show');
+                setTimeout(() => indicator.classList.remove('show'), 1000);
+            }
+        }
+
+        // Render all views
+        function render() {
             renderToday();
             renderCustomers();
             renderReferrals();
-        }
-
-        // Save data
-        function saveData() {
-            localStorage.setItem('pesttracker', JSON.stringify(data));
+            renderPests();
         }
 
         // Show view
@@ -562,33 +665,75 @@
             document.querySelector(`.tab[onclick="showView('${view}')"]`).classList.add('active');
         }
 
+        // Filter helpers
+        function filterToday(query) {
+            searchQuery = query.toLowerCase();
+            renderToday();
+        }
+
+        function filterCustomers(query) {
+            searchQuery = query.toLowerCase();
+            renderCustomers();
+        }
+
+        function setCustomerFilter(filter) {
+            customerFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.filter-tab[onclick="setCustomerFilter('${filter}')"]`).classList.add('active');
+            renderCustomers();
+        }
+
+        // Get draft job for customer
+        function getDraftJob(customerId) {
+            return data.jobs.find(j => j.customerId === customerId && j.status === 'draft');
+        }
+
         // Render today's jobs
         function renderToday() {
             const container = document.getElementById('today-jobs');
             const today = new Date().toDateString();
 
-            // Get today's jobs and customers who need visits
-            const todayJobs = data.jobs.filter(j => new Date(j.date).toDateString() === today);
-            const todayCustomerIds = todayJobs.map(j => j.customerId);
+            let customers = data.customers.filter(c => !c.archived);
+            if (searchQuery) {
+                customers = customers.filter(c =>
+                    c.name.toLowerCase().includes(searchQuery) ||
+                    (c.address && c.address.toLowerCase().includes(searchQuery))
+                );
+            }
 
             let html = '';
 
-            // Show customers with today's jobs
-            data.customers.forEach(c => {
-                const todayJob = todayJobs.find(j => j.customerId === c.id);
-                const status = todayJob ? (todayJob.completed ? 'done' : 'in-progress') : '';
+            customers.forEach(c => {
+                const todayJobs = data.jobs.filter(j =>
+                    j.customerId === c.id &&
+                    new Date(j.date).toDateString() === today &&
+                    j.status === 'completed'
+                );
+                const draftJob = getDraftJob(c.id);
+                const totalVisits = data.jobs.filter(j => j.customerId === c.id && j.status === 'completed').length;
+
+                let statusClass = '';
+                let badge = '';
+                if (todayJobs.length > 0) {
+                    statusClass = 'done';
+                    badge = '<span class="job-badge today">Today ✓</span>';
+                } else if (draftJob) {
+                    statusClass = 'has-draft';
+                    badge = '<span class="job-badge draft">In Progress</span>';
+                }
 
                 html += `
-                    <div class="job-card ${status}">
-                        <div class="job-name">${c.name}</div>
-                        <div class="job-address">${c.address}</div>
-                        <div class="job-meta">${c.phone || 'No phone'}</div>
+                    <div class="job-card ${statusClass}">
+                        <div class="job-name">${c.name}${badge}</div>
+                        ${c.address ? `<div class="job-address">${c.address}</div>` : ''}
+                        <div class="job-meta">${c.phone || 'No phone'} · ${totalVisits} visits</div>
                         <div class="job-actions">
-                            ${todayJob && todayJob.completed ?
-                                `<button class="job-btn done" onclick="viewHistory('${c.id}')">View</button>` :
-                                `<button class="job-btn start" onclick="startJob('${c.id}')">Start Job</button>`
+                            ${draftJob ?
+                                `<button class="job-btn resume" onclick="resumeJob('${draftJob.id}')">Resume</button>` :
+                                `<button class="job-btn start" onclick="startJob('${c.id}')">Start Visit</button>`
                             }
                             <button class="job-btn view" onclick="viewHistory('${c.id}')">History</button>
+                            <button class="job-btn edit" onclick="editCustomer('${c.id}')">Edit</button>
                         </div>
                     </div>
                 `;
@@ -598,7 +743,7 @@
                 html = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
-                        <p>No customers yet</p>
+                        <p>${searchQuery ? 'No matches found' : 'No customers yet'}</p>
                         <p style="font-size:14px;margin-top:8px">Tap "+ Add Customer" to get started</p>
                     </div>
                 `;
@@ -610,15 +755,32 @@
         // Render all customers
         function renderCustomers() {
             const container = document.getElementById('all-customers');
+
+            let customers = data.customers;
+            if (customerFilter === 'active') {
+                customers = customers.filter(c => !c.archived);
+            } else if (customerFilter === 'archived') {
+                customers = customers.filter(c => c.archived);
+            }
+
+            if (searchQuery) {
+                customers = customers.filter(c =>
+                    c.name.toLowerCase().includes(searchQuery) ||
+                    (c.address && c.address.toLowerCase().includes(searchQuery))
+                );
+            }
+
             let html = '';
 
-            data.customers.forEach(c => {
-                const jobCount = data.jobs.filter(j => j.customerId === c.id).length;
+            customers.forEach(c => {
+                const jobCount = data.jobs.filter(j => j.customerId === c.id && j.status === 'completed').length;
+                const draftJob = getDraftJob(c.id);
+
                 html += `
-                    <div class="job-card" onclick="editCustomer('${c.id}')">
-                        <div class="job-name">${c.name}</div>
-                        <div class="job-address">${c.address}</div>
-                        <div class="job-meta">${c.phone || 'No phone'} · ${jobCount} visits</div>
+                    <div class="job-card ${c.archived ? 'archived' : ''}" onclick="editCustomer('${c.id}')">
+                        <div class="job-name">${c.name}${draftJob ? '<span class="job-badge draft">Draft</span>' : ''}</div>
+                        ${c.address ? `<div class="job-address">${c.address}</div>` : ''}
+                        <div class="job-meta">${c.phone || 'No phone'} · ${jobCount} visits${c.archived ? ' · Archived' : ''}</div>
                     </div>
                 `;
             });
@@ -627,7 +789,7 @@
                 html = `
                     <div class="empty-state">
                         <div class="empty-state-icon">👥</div>
-                        <p>No customers yet</p>
+                        <p>${searchQuery ? 'No matches found' : (customerFilter === 'archived' ? 'No archived customers' : 'No customers yet')}</p>
                     </div>
                 `;
             }
@@ -649,7 +811,7 @@
                         <div class="referral-notes">${r.notes || 'No notes'}</div>
                         <div class="referral-actions">
                             <button class="job-btn view" onclick="copyReferral(${i})">Copy Info</button>
-                            <button class="job-btn done" onclick="removeReferral(${i})">Done</button>
+                            <button class="job-btn edit" onclick="removeReferral(${i})">Done</button>
                         </div>
                     </div>
                 `;
@@ -676,7 +838,7 @@
             document.getElementById('customer-address').value = '';
             document.getElementById('customer-phone').value = '';
             document.getElementById('customer-notes').value = '';
-            document.getElementById('delete-customer-btn').style.display = 'none';
+            document.getElementById('archive-customer-btn').style.display = 'none';
             openModal('customer');
         }
 
@@ -688,10 +850,15 @@
             editingCustomerId = id;
             document.getElementById('customer-modal-title').textContent = 'Edit Customer';
             document.getElementById('customer-name').value = customer.name;
-            document.getElementById('customer-address').value = customer.address;
+            document.getElementById('customer-address').value = customer.address || '';
             document.getElementById('customer-phone').value = customer.phone || '';
             document.getElementById('customer-notes').value = customer.notes || '';
-            document.getElementById('delete-customer-btn').style.display = 'block';
+
+            const archiveBtn = document.getElementById('archive-customer-btn');
+            archiveBtn.style.display = 'block';
+            archiveBtn.textContent = customer.archived ? 'Unarchive Customer' : 'Archive Customer';
+            archiveBtn.className = customer.archived ? 'submit-btn secondary' : 'submit-btn danger';
+
             openModal('customer');
         }
 
@@ -702,8 +869,8 @@
             const phone = document.getElementById('customer-phone').value.trim();
             const notes = document.getElementById('customer-notes').value.trim();
 
-            if (!name || !address) {
-                showToast('Name and address required');
+            if (!name) {
+                showToast('Name is required');
                 return;
             }
 
@@ -721,90 +888,161 @@
                     name,
                     address,
                     phone,
-                    notes
+                    notes,
+                    archived: false
                 });
             }
 
             saveData();
-            renderToday();
-            renderCustomers();
+            render();
             closeModal('customer');
             showToast(editingCustomerId ? 'Customer updated' : 'Customer added');
         }
 
-        // Delete customer
-        function deleteCustomer() {
+        // Toggle archive customer
+        function toggleArchiveCustomer() {
             if (!editingCustomerId) return;
-            if (!confirm('Delete this customer and all their job history?')) return;
 
-            data.customers = data.customers.filter(c => c.id !== editingCustomerId);
-            data.jobs = data.jobs.filter(j => j.customerId !== editingCustomerId);
-            data.referrals = data.referrals.filter(r => r.customerId !== editingCustomerId);
+            const customer = data.customers.find(c => c.id === editingCustomerId);
+            if (!customer) return;
 
+            customer.archived = !customer.archived;
             saveData();
-            renderToday();
-            renderCustomers();
-            renderReferrals();
+            render();
             closeModal('customer');
-            showToast('Customer deleted');
+            showToast(customer.archived ? 'Customer archived' : 'Customer restored');
         }
 
-        // Start job
+        // Start new job
         function startJob(customerId) {
             const customer = data.customers.find(c => c.id === customerId);
             if (!customer) return;
 
+            // Check for existing draft
+            let draftJob = getDraftJob(customerId);
+            if (draftJob) {
+                resumeJob(draftJob.id);
+                return;
+            }
+
+            // Create new draft job
+            const newJob = {
+                id: Date.now().toString(),
+                customerId: customerId,
+                date: new Date().toISOString(),
+                pests: [],
+                work: [],
+                trapCount: 0,
+                notes: '',
+                status: 'draft'
+            };
+            data.jobs.push(newJob);
+            saveData();
+
             currentCustomerId = customerId;
-            trapCount = 0;
+            currentJobId = newJob.id;
 
-            document.getElementById('job-customer-name').textContent = customer.name;
-            document.getElementById('trap-count').textContent = '0';
-            document.getElementById('job-notes').value = '';
-
-            // Reset toggles
-            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected'));
-
+            loadJobIntoModal(newJob, customer.name);
             openModal('job');
         }
 
-        // Toggle buttons
+        // Resume existing job
+        function resumeJob(jobId) {
+            const job = data.jobs.find(j => j.id === jobId);
+            if (!job) return;
+
+            const customer = data.customers.find(c => c.id === job.customerId);
+            if (!customer) return;
+
+            currentCustomerId = job.customerId;
+            currentJobId = jobId;
+
+            loadJobIntoModal(job, customer.name);
+            openModal('job');
+        }
+
+        // Load job data into modal
+        function loadJobIntoModal(job, customerName) {
+            document.getElementById('job-customer-name').textContent = customerName;
+            document.getElementById('trap-count').textContent = job.trapCount || 0;
+            document.getElementById('job-notes').value = job.notes || '';
+
+            // Reset and set toggles
+            document.querySelectorAll('[data-pest]').forEach(btn => {
+                btn.classList.toggle('selected', job.pests.includes(btn.dataset.pest));
+            });
+            document.querySelectorAll('[data-work]').forEach(btn => {
+                btn.classList.toggle('selected', job.work.includes(btn.dataset.work));
+            });
+        }
+
+        // Auto-save current job
+        function autoSaveJob() {
+            if (!currentJobId) return;
+
+            const job = data.jobs.find(j => j.id === currentJobId);
+            if (!job) return;
+
+            job.pests = Array.from(document.querySelectorAll('[data-pest].selected')).map(b => b.dataset.pest);
+            job.work = Array.from(document.querySelectorAll('[data-work].selected')).map(b => b.dataset.work);
+            job.trapCount = parseInt(document.getElementById('trap-count').textContent) || 0;
+            job.notes = document.getElementById('job-notes').value;
+            job.date = new Date().toISOString();
+
+            saveData();
+        }
+
+        // Toggle buttons with auto-save
         document.querySelectorAll('.toggle-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 btn.classList.toggle('selected');
+                autoSaveJob();
             });
         });
 
         // Adjust trap count
         function adjustCount(delta) {
-            trapCount = Math.max(0, trapCount + delta);
-            document.getElementById('trap-count').textContent = trapCount;
+            const el = document.getElementById('trap-count');
+            const newVal = Math.max(0, (parseInt(el.textContent) || 0) + delta);
+            el.textContent = newVal;
+            autoSaveJob();
         }
 
-        // Save job
-        function saveJob() {
-            const pests = Array.from(document.querySelectorAll('[data-pest].selected')).map(b => b.dataset.pest);
-            const work = Array.from(document.querySelectorAll('[data-work].selected')).map(b => b.dataset.work);
-            const notes = document.getElementById('job-notes').value.trim();
+        // Complete job
+        function completeJob() {
+            if (!currentJobId) return;
 
-            data.jobs.push({
-                id: Date.now().toString(),
-                customerId: currentCustomerId,
-                date: new Date().toISOString(),
-                pests,
-                work,
-                trapCount,
-                notes,
-                completed: true
-            });
+            const job = data.jobs.find(j => j.id === currentJobId);
+            if (!job) return;
+
+            // Final save
+            autoSaveJob();
+            job.status = 'completed';
 
             saveData();
-            renderToday();
+            render();
             closeModal('job');
             showToast('Job completed!');
+
+            currentJobId = null;
+            currentCustomerId = null;
+        }
+
+        // Close job modal (keeps as draft)
+        function closeJobModal() {
+            autoSaveJob();
+            closeModal('job');
+            render();
+            showToast('Saved as draft');
+
+            currentJobId = null;
+            currentCustomerId = null;
         }
 
         // Refer to specialist
         function referToSpecialist() {
+            if (!currentCustomerId) return;
+
             const notes = document.getElementById('job-notes').value.trim();
             const pests = Array.from(document.querySelectorAll('[data-pest].selected')).map(b => b.textContent.trim());
             const work = Array.from(document.querySelectorAll('[data-work].selected')).map(b => b.textContent.trim());
@@ -812,7 +1050,7 @@
             data.referrals.push({
                 customerId: currentCustomerId,
                 date: new Date().toISOString(),
-                notes: `Pests: ${pests.join(', ') || 'None selected'}\nWork: ${work.join(', ') || 'None selected'}\nNotes: ${notes || 'None'}`
+                notes: `Pests: ${pests.join(', ') || 'None'}\nWork: ${work.join(', ') || 'None'}\nNotes: ${notes || 'None'}`
             });
 
             saveData();
@@ -826,21 +1064,30 @@
             if (!customer) return;
 
             currentCustomerId = customerId;
-            document.getElementById('history-customer-name').textContent = customer.name + ' History';
+            document.getElementById('history-customer-name').textContent = customer.name + ' - History';
 
             const customerJobs = data.jobs.filter(j => j.customerId === customerId).reverse();
             let html = '';
 
+            if (customer.notes) {
+                html += `<div class="history-item" style="border-left: 3px solid #4ade80;"><div style="color:#4ade80;font-size:12px;">CUSTOMER NOTES</div><div class="history-work">${customer.notes}</div></div>`;
+            }
+
             customerJobs.forEach(j => {
                 const pestLabels = { mice: '🐭', rats: '🐀', squirrels: '🐿️', bats: '🦇', raccoons: '🦝', insects: '🪳', birds: '🐦', other: '❓' };
-                const pests = j.pests.map(p => pestLabels[p] || p).join(' ');
+                const pests = (j.pests || []).map(p => pestLabels[p] || p).join(' ');
+                const statusClass = j.status === 'draft' ? 'draft' : 'completed';
+                const statusLabel = j.status === 'draft' ? 'In Progress' : 'Completed';
 
                 html += `
-                    <div class="history-item">
-                        <div class="history-date">${new Date(j.date).toLocaleDateString()}</div>
+                    <div class="history-item" ${j.status === 'draft' ? `onclick="resumeJob('${j.id}')" style="cursor:pointer"` : ''}>
+                        <div class="history-date">
+                            ${new Date(j.date).toLocaleDateString()}
+                            <span class="history-status ${statusClass}">${statusLabel}</span>
+                        </div>
                         <div class="history-work">
                             ${pests ? `Pests: ${pests}<br>` : ''}
-                            ${j.work.length ? `Work: ${j.work.join(', ')}<br>` : ''}
+                            ${(j.work || []).length ? `Work: ${j.work.join(', ')}<br>` : ''}
                             ${j.trapCount ? `Traps: ${j.trapCount}<br>` : ''}
                             ${j.notes ? `Notes: ${j.notes}` : ''}
                         </div>
@@ -849,7 +1096,7 @@
             });
 
             if (!html) {
-                html = '<div class="empty-state"><p>No history yet</p></div>';
+                html = '<div class="empty-state"><p>No visits yet</p></div>';
             }
 
             document.getElementById('history-list').innerHTML = html;
@@ -860,7 +1107,7 @@
         function copyReferral(index) {
             const r = data.referrals[index];
             const customer = data.customers.find(c => c.id === r.customerId);
-            const text = `REFERRAL\n${customer ? customer.name : 'Unknown'}\n${customer ? customer.address : ''}\n${customer ? customer.phone : ''}\n\n${r.notes}`;
+            const text = `REFERRAL\n${customer ? customer.name : 'Unknown'}\n${customer ? customer.address || '' : ''}\n${customer ? customer.phone || '' : ''}\n\n${r.notes}`;
 
             navigator.clipboard.writeText(text).then(() => {
                 showToast('Copied to clipboard!');
@@ -879,19 +1126,20 @@
 
         // Export data
         function exportData() {
-            const csv = ['Customer,Address,Phone,Date,Pests,Work,Traps,Notes'];
+            const csv = ['Customer,Address,Phone,Date,Status,Pests,Work,Traps,Notes'];
 
             data.jobs.forEach(j => {
                 const c = data.customers.find(x => x.id === j.customerId);
                 csv.push([
                     c ? c.name : '',
-                    c ? c.address : '',
-                    c ? c.phone : '',
+                    c ? (c.address || '') : '',
+                    c ? (c.phone || '') : '',
                     new Date(j.date).toLocaleDateString(),
-                    j.pests.join(';'),
-                    j.work.join(';'),
-                    j.trapCount,
-                    (j.notes || '').replace(/,/g, ';')
+                    j.status || 'completed',
+                    (j.pests || []).join(';'),
+                    (j.work || []).join(';'),
+                    j.trapCount || 0,
+                    (j.notes || '').replace(/,/g, ';').replace(/\n/g, ' ')
                 ].join(','));
             });
 
@@ -1201,7 +1449,7 @@
             if (pest.warning) {
                 html += `
                     <div class="pest-section pest-warning">
-                        <div class="pest-section-title">⚠️ Warning</div>
+                        <div class="pest-section-title">Warning</div>
                         <div class="pest-section-content">${pest.warning}</div>
                     </div>
                 `;
@@ -1210,7 +1458,7 @@
             if (pest.legalWindow) {
                 html += `
                     <div class="pest-section" style="border-left: 4px solid #3b82f6;">
-                        <div class="pest-section-title" style="color: #93c5fd;">📅 Legal Timing (PA)</div>
+                        <div class="pest-section-title" style="color: #93c5fd;">Legal Timing (PA)</div>
                         <div class="pest-section-content">${pest.legalWindow}</div>
                     </div>
                 `;
@@ -1239,7 +1487,7 @@
                 </div>
 
                 <div class="pest-section pest-tip">
-                    <div class="pest-section-title">💡 Pro Tip</div>
+                    <div class="pest-section-title">Pro Tip</div>
                     <div class="pest-section-content">${pest.tips}</div>
                 </div>
             `;
@@ -1250,7 +1498,6 @@
 
         // Init
         loadData();
-        renderPests();
     </script>
 </body>
 </html>
