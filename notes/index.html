@@ -950,7 +950,7 @@
             });
         }
 
-        // Move customer to different time slot
+        // Move customer to different time slot (with swap if occupied)
         function moveCustomer(customerId, direction) {
             const customer = data.customers.find(c => c.id === customerId);
             if (!customer) return;
@@ -959,7 +959,7 @@
             let newHour;
 
             if (currentHour === null) {
-                // Unscheduled -> move to first slot
+                // Unscheduled -> move to first/last slot
                 newHour = direction > 0 ? 7 : 19;
             } else {
                 newHour = currentHour + direction;
@@ -967,6 +967,26 @@
                 if (newHour > 19) newHour = null; // Move to unscheduled
             }
 
+            // Check if someone is already in the target slot - swap them
+            if (newHour !== null) {
+                const targetCustomers = data.customers.filter(c =>
+                    !c.archived && !c.isCommercial && c.id !== customerId &&
+                    parseTimeToHour(c.scheduledTime) === newHour
+                );
+                // Swap first customer in that slot to our old slot
+                if (targetCustomers.length > 0) {
+                    const swapCustomer = targetCustomers[0];
+                    if (currentHour === null) {
+                        swapCustomer.scheduledTime = '';
+                    } else {
+                        const suffix = currentHour >= 12 ? 'pm' : 'am';
+                        const displayHour = currentHour > 12 ? currentHour - 12 : currentHour;
+                        swapCustomer.scheduledTime = displayHour + ':00 ' + suffix;
+                    }
+                }
+            }
+
+            // Set new time for moved customer
             if (newHour === null) {
                 customer.scheduledTime = '';
             } else {
@@ -974,6 +994,9 @@
                 const displayHour = newHour > 12 ? newHour - 12 : newHour;
                 customer.scheduledTime = displayHour + ':00 ' + suffix;
             }
+
+            // Clear all slot expansions for cleaner view
+            expandedSlots = {};
 
             saveData();
             renderToday();
@@ -1122,41 +1145,43 @@
 
             let html = '';
 
-            // Unscheduled section
+            // Unscheduled section - always show expanded if has customers
             const unscheduled = customers.filter(c => !c.isCommercial && !parseTimeToHour(c.scheduledTime));
-            html += `
-                <div class="time-section ${unscheduled.length > 0 ? 'expanded' : ''}">
-                    <div class="time-section-header unscheduled" onclick="this.parentElement.classList.toggle('expanded')">
-                        <div>
-                            <span class="time-label">Unscheduled</span>
-                            <span class="time-count">${unscheduled.length} customer${unscheduled.length !== 1 ? 's' : ''}</span>
+            if (unscheduled.length > 0) {
+                html += `
+                    <div class="time-section expanded">
+                        <div class="time-section-header unscheduled">
+                            <div>
+                                <span class="time-label">Unscheduled</span>
+                                <span class="time-count">${unscheduled.length}</span>
+                            </div>
                         </div>
-                        <span class="time-expand">▼</span>
+                        <div class="time-section-content">
+                            ${unscheduled.map(c => renderCompactCard(c)).join('')}
+                        </div>
                     </div>
-                    <div class="time-section-content">
-                        ${unscheduled.length === 0 ? '<div style="color:#666;padding:8px 0;font-size:13px;">No unscheduled customers</div>' : ''}
-                        ${unscheduled.map(c => renderCompactCard(c)).join('')}
-                    </div>
-                </div>
-            `;
+                `;
+            }
 
-            // Hour slots from 7am to 7pm
+            // Hour slots from 7am to 7pm - only show slots with customers OR if explicitly expanded
             TIME_SLOTS.forEach(hour => {
                 const slotCustomers = getCustomersForSlot(hour, customers);
                 const hasCustomers = slotCustomers.length > 0;
                 const isExpanded = expandedSlots[hour];
 
+                // Skip empty slots that aren't expanded
+                if (!hasCustomers && !isExpanded) return;
+
                 html += `
-                    <div class="time-section ${isExpanded ? 'expanded' : ''}">
-                        <div class="time-section-header ${hasCustomers ? 'has-customers' : ''}" onclick="toggleSlot(${hour})">
+                    <div class="time-section ${hasCustomers || isExpanded ? 'expanded' : ''}">
+                        <div class="time-section-header has-customers" onclick="toggleSlot(${hour})">
                             <div>
                                 <span class="time-label">${formatHourAMPM(hour)}</span>
-                                <span class="time-count">${slotCustomers.length} customer${slotCustomers.length !== 1 ? 's' : ''}</span>
+                                ${slotCustomers.length > 0 ? `<span class="time-count">${slotCustomers.length}</span>` : ''}
                             </div>
                             <span class="time-expand">▼</span>
                         </div>
                         <div class="time-section-content">
-                            ${slotCustomers.length === 0 ? '<div style="color:#666;padding:8px 0;font-size:13px;">No appointments</div>' : ''}
                             ${slotCustomers.map(c => renderCompactCard(c)).join('')}
                             ${isExpanded === '30min' || isExpanded === '15min' ? `
                                 <div class="time-subslot">
@@ -1176,23 +1201,23 @@
                 `;
             });
 
-            // Commercial after-hours section
+            // Commercial after-hours section - only show if has customers
             const commercial = customers.filter(c => c.isCommercial);
-            html += `
-                <div class="time-section ${commercial.length > 0 ? 'expanded' : ''}">
-                    <div class="time-section-header after-hours" onclick="this.parentElement.classList.toggle('expanded')">
-                        <div>
-                            <span class="time-label">After Hours (Commercial)</span>
-                            <span class="time-count">${commercial.length} customer${commercial.length !== 1 ? 's' : ''}</span>
+            if (commercial.length > 0) {
+                html += `
+                    <div class="time-section expanded">
+                        <div class="time-section-header after-hours">
+                            <div>
+                                <span class="time-label">After Hours (Commercial)</span>
+                                <span class="time-count">${commercial.length}</span>
+                            </div>
                         </div>
-                        <span class="time-expand">▼</span>
+                        <div class="time-section-content">
+                            ${commercial.map(c => renderCompactCard(c, false)).join('')}
+                        </div>
                     </div>
-                    <div class="time-section-content">
-                        ${commercial.length === 0 ? '<div style="color:#666;padding:8px 0;font-size:13px;">No commercial accounts</div>' : ''}
-                        ${commercial.map(c => renderCompactCard(c, false)).join('')}
-                    </div>
-                </div>
-            `;
+                `;
+            }
 
             container.innerHTML = html;
         }
