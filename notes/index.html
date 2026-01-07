@@ -186,6 +186,109 @@
         .call-option.no-answer { border-color: #ef4444; }
         .call-option.rescheduled { border-color: #3b82f6; }
 
+        /* Time Slots */
+        .time-section {
+            margin-bottom: 8px;
+        }
+        .time-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #16213e;
+            border-radius: 8px;
+            cursor: pointer;
+            border-left: 3px solid #333;
+        }
+        .time-section-header:active { background: #1e2a4a; }
+        .time-section-header.has-customers { border-left-color: #4ade80; }
+        .time-section-header.after-hours { border-left-color: #f59e0b; background: linear-gradient(135deg, #1a1a2e 0%, #2d1f0f 100%); }
+        .time-section-header.unscheduled { border-left-color: #ef4444; background: linear-gradient(135deg, #1a1a2e 0%, #2d1010 100%); }
+        .time-label { font-weight: 600; font-size: 14px; }
+        .time-count { font-size: 12px; color: #888; margin-left: 8px; }
+        .time-expand { color: #666; font-size: 16px; transition: transform 0.2s; }
+        .time-section.expanded .time-expand { transform: rotate(180deg); }
+        .time-section-content {
+            display: none;
+            padding: 8px 0 8px 16px;
+            border-left: 1px solid #333;
+            margin-left: 16px;
+        }
+        .time-section.expanded .time-section-content { display: block; }
+
+        /* Sub-slots (30min, 15min) */
+        .time-subslot {
+            padding: 8px 12px;
+            margin: 4px 0;
+            background: #1a1a2e;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #888;
+            cursor: pointer;
+            border-left: 2px solid #333;
+        }
+        .time-subslot:active { background: #222; }
+        .time-subslot.has-customers { border-left-color: #4ade80; color: #fff; }
+
+        /* Compact job card for scheduler */
+        .job-card-compact {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin: 6px 0;
+            border-left: 3px solid #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .job-card-compact.done { border-left-color: #4ade80; opacity: 0.7; }
+        .job-card-compact.has-draft { border-left-color: #3b82f6; }
+        .job-card-compact.commercial { border-left-color: #f59e0b; }
+        .job-card-compact-info { flex: 1; min-width: 0; }
+        .job-card-compact-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .job-card-compact-meta { font-size: 11px; color: #888; }
+        .job-card-compact-pests { font-size: 12px; }
+        .job-card-compact-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .move-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: none;
+            background: #333;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .move-btn:active { background: #444; }
+        .move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .action-btn-small {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .action-btn-small.start { background: #4ade80; color: #000; }
+        .action-btn-small.call { background: #8b5cf6; color: #fff; }
+
+        /* Commercial badge */
+        .badge-commercial {
+            background: #f59e0b;
+            color: #000;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            font-weight: 600;
+        }
+
         /* Form Elements */
         .form-group { margin-bottom: 16px; }
         .form-label { font-size: 14px; color: #888; margin-bottom: 8px; display: block; }
@@ -581,6 +684,10 @@
                 <label class="form-label">Notes <span class="optional">(optional)</span></label>
                 <textarea id="customer-notes" class="form-input" placeholder="Gate code, dog in yard, etc."></textarea>
             </div>
+            <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+                <input type="checkbox" id="customer-commercial" style="width:20px;height:20px;">
+                <label for="customer-commercial" class="form-label" style="margin:0;cursor:pointer;">Commercial Account (after-hours)</label>
+            </div>
             <button class="submit-btn" onclick="saveCustomer()">Save Customer</button>
             <button class="submit-btn secondary" id="archive-customer-btn" style="display:none; margin-top:8px;" onclick="toggleArchiveCustomer()">Archive Customer</button>
         </div>
@@ -711,6 +818,10 @@
         let customerFilter = 'active';
         let searchQuery = '';
 
+        // Time slot state
+        let expandedSlots = {}; // { '7': 'hour'|'30min'|'15min' }
+        const TIME_SLOTS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]; // 7am to 7pm
+
         // Load data
         function loadData() {
             const saved = localStorage.getItem('pesttracker');
@@ -802,6 +913,126 @@
             return labels[lastCall.result] || '';
         }
 
+        // Format hour to 12h display
+        function formatHour(hour) {
+            if (hour === 0 || hour === 12) return '12:00';
+            return hour > 12 ? (hour - 12) + ':00' : hour + ':00';
+        }
+        function formatHourAMPM(hour) {
+            const suffix = hour >= 12 ? 'PM' : 'AM';
+            const h = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+            return h + ':00 ' + suffix;
+        }
+
+        // Parse scheduledTime to hour slot
+        function parseTimeToHour(timeStr) {
+            if (!timeStr) return null;
+            const lower = timeStr.toLowerCase();
+            // Try to extract hour from various formats
+            const match = lower.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+            if (!match) return null;
+            let hour = parseInt(match[1]);
+            const isPM = match[3] === 'pm';
+            const isAM = match[3] === 'am';
+            if (isPM && hour !== 12) hour += 12;
+            if (isAM && hour === 12) hour = 0;
+            // If no am/pm and hour < 7, assume PM
+            if (!match[3] && hour < 7 && hour !== 0) hour += 12;
+            return hour;
+        }
+
+        // Get customers for a specific hour slot
+        function getCustomersForSlot(hour, customers) {
+            return customers.filter(c => {
+                if (c.isCommercial) return false; // Commercial goes to after-hours
+                const custHour = parseTimeToHour(c.scheduledTime);
+                return custHour === hour;
+            });
+        }
+
+        // Move customer to different time slot
+        function moveCustomer(customerId, direction) {
+            const customer = data.customers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            const currentHour = parseTimeToHour(customer.scheduledTime);
+            let newHour;
+
+            if (currentHour === null) {
+                // Unscheduled -> move to first slot
+                newHour = direction > 0 ? 7 : 19;
+            } else {
+                newHour = currentHour + direction;
+                if (newHour < 7) newHour = null; // Move to unscheduled
+                if (newHour > 19) newHour = null; // Move to unscheduled
+            }
+
+            if (newHour === null) {
+                customer.scheduledTime = '';
+            } else {
+                const suffix = newHour >= 12 ? 'pm' : 'am';
+                const displayHour = newHour > 12 ? newHour - 12 : newHour;
+                customer.scheduledTime = displayHour + ':00 ' + suffix;
+            }
+
+            saveData();
+            renderToday();
+        }
+
+        // Toggle slot expansion
+        function toggleSlot(hour) {
+            const current = expandedSlots[hour];
+            if (!current) {
+                expandedSlots[hour] = 'hour';
+            } else if (current === 'hour') {
+                expandedSlots[hour] = '30min';
+            } else if (current === '30min') {
+                expandedSlots[hour] = '15min';
+            } else {
+                delete expandedSlots[hour];
+            }
+            renderToday();
+        }
+
+        // Render compact customer card for scheduler
+        function renderCompactCard(c, showMoveButtons = true) {
+            const draftJob = getDraftJob(c.id);
+            const pests = getCustomerPests(c.id);
+            const callBadge = getCallBadge(c.id);
+            const today = new Date().toDateString();
+            const todayJobs = data.jobs.filter(j =>
+                j.customerId === c.id &&
+                new Date(j.date).toDateString() === today &&
+                j.status === 'completed'
+            );
+
+            let statusClass = '';
+            if (todayJobs.length > 0) statusClass = 'done';
+            else if (draftJob) statusClass = 'has-draft';
+            if (c.isCommercial) statusClass += ' commercial';
+
+            return `
+                <div class="job-card-compact ${statusClass}">
+                    <div class="job-card-compact-info" onclick="startJob('${c.id}')">
+                        <div class="job-card-compact-name">
+                            ${c.name}
+                            ${c.isCommercial ? '<span class="badge-commercial">COMM</span>' : ''}
+                            ${callBadge}
+                        </div>
+                        <div class="job-card-compact-meta">${c.phone || 'No phone'}${c.scheduledTime ? ' · ' + c.scheduledTime : ''}</div>
+                        ${pests ? `<div class="job-card-compact-pests">${pests}</div>` : ''}
+                    </div>
+                    <div class="job-card-compact-actions">
+                        <button class="action-btn-small call" onclick="event.stopPropagation();openPreCall('${c.id}')">Call</button>
+                        ${showMoveButtons ? `
+                            <button class="move-btn" onclick="event.stopPropagation();moveCustomer('${c.id}', -1)" title="Move earlier">▲</button>
+                            <button class="move-btn" onclick="event.stopPropagation();moveCustomer('${c.id}', 1)" title="Move later">▼</button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
         // Open pre-call modal
         function openPreCall(customerId) {
             const customer = data.customers.find(c => c.id === customerId);
@@ -866,10 +1097,9 @@
             showToast('Logged: ' + labels[result]);
         }
 
-        // Render today's jobs
+        // Render today's jobs with time slot scheduler
         function renderToday() {
             const container = document.getElementById('today-jobs');
-            const today = new Date().toDateString();
 
             let customers = data.customers.filter(c => !c.archived);
             if (searchQuery) {
@@ -879,56 +1109,90 @@
                 );
             }
 
-            let html = '';
-
-            customers.forEach(c => {
-                const todayJobs = data.jobs.filter(j =>
-                    j.customerId === c.id &&
-                    new Date(j.date).toDateString() === today &&
-                    j.status === 'completed'
-                );
-                const draftJob = getDraftJob(c.id);
-                const totalVisits = data.jobs.filter(j => j.customerId === c.id && j.status === 'completed').length;
-                const pests = getCustomerPests(c.id);
-                const callBadge = getCallBadge(c.id);
-
-                let statusClass = '';
-                let badge = '';
-                if (todayJobs.length > 0) {
-                    statusClass = 'done';
-                    badge = '<span class="job-badge today">Today ✓</span>';
-                } else if (draftJob) {
-                    statusClass = 'has-draft';
-                    badge = '<span class="job-badge draft">In Progress</span>';
-                }
-
-                html += `
-                    <div class="job-card ${statusClass}">
-                        <div class="job-name">${c.name}${badge}${callBadge}</div>
-                        ${c.address ? `<div class="job-address">${c.address}</div>` : ''}
-                        <div class="job-meta">${c.phone || 'No phone'} · ${totalVisits} visits${c.scheduledTime ? ` · ${c.scheduledTime}` : ''}</div>
-                        ${pests ? `<div class="job-pests">${pests}</div>` : ''}
-                        <div class="job-actions">
-                            <button class="job-btn call" onclick="openPreCall('${c.id}')">Call</button>
-                            ${draftJob ?
-                                `<button class="job-btn resume" onclick="resumeJob('${draftJob.id}')">Resume</button>` :
-                                `<button class="job-btn start" onclick="startJob('${c.id}')">Start</button>`
-                            }
-                            <button class="job-btn view" onclick="viewHistory('${c.id}')">History</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            if (!html) {
-                html = `
+            if (customers.length === 0) {
+                container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
                         <p>${searchQuery ? 'No matches found' : 'No customers yet'}</p>
                         <p style="font-size:14px;margin-top:8px">Tap "+ Add Customer" to get started</p>
                     </div>
                 `;
+                return;
             }
+
+            let html = '';
+
+            // Unscheduled section
+            const unscheduled = customers.filter(c => !c.isCommercial && !parseTimeToHour(c.scheduledTime));
+            html += `
+                <div class="time-section ${unscheduled.length > 0 ? 'expanded' : ''}">
+                    <div class="time-section-header unscheduled" onclick="this.parentElement.classList.toggle('expanded')">
+                        <div>
+                            <span class="time-label">Unscheduled</span>
+                            <span class="time-count">${unscheduled.length} customer${unscheduled.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <span class="time-expand">▼</span>
+                    </div>
+                    <div class="time-section-content">
+                        ${unscheduled.length === 0 ? '<div style="color:#666;padding:8px 0;font-size:13px;">No unscheduled customers</div>' : ''}
+                        ${unscheduled.map(c => renderCompactCard(c)).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Hour slots from 7am to 7pm
+            TIME_SLOTS.forEach(hour => {
+                const slotCustomers = getCustomersForSlot(hour, customers);
+                const hasCustomers = slotCustomers.length > 0;
+                const isExpanded = expandedSlots[hour];
+
+                html += `
+                    <div class="time-section ${isExpanded ? 'expanded' : ''}">
+                        <div class="time-section-header ${hasCustomers ? 'has-customers' : ''}" onclick="toggleSlot(${hour})">
+                            <div>
+                                <span class="time-label">${formatHourAMPM(hour)}</span>
+                                <span class="time-count">${slotCustomers.length} customer${slotCustomers.length !== 1 ? 's' : ''}</span>
+                            </div>
+                            <span class="time-expand">▼</span>
+                        </div>
+                        <div class="time-section-content">
+                            ${slotCustomers.length === 0 ? '<div style="color:#666;padding:8px 0;font-size:13px;">No appointments</div>' : ''}
+                            ${slotCustomers.map(c => renderCompactCard(c)).join('')}
+                            ${isExpanded === '30min' || isExpanded === '15min' ? `
+                                <div class="time-subslot">
+                                    <span style="color:#4ade80;">${formatHour(hour).replace(':00', ':30')}</span>
+                                </div>
+                            ` : ''}
+                            ${isExpanded === '15min' ? `
+                                <div class="time-subslot">
+                                    <span style="color:#888;">${formatHour(hour).replace(':00', ':15')}</span>
+                                </div>
+                                <div class="time-subslot">
+                                    <span style="color:#888;">${formatHour(hour).replace(':00', ':45')}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Commercial after-hours section
+            const commercial = customers.filter(c => c.isCommercial);
+            html += `
+                <div class="time-section ${commercial.length > 0 ? 'expanded' : ''}">
+                    <div class="time-section-header after-hours" onclick="this.parentElement.classList.toggle('expanded')">
+                        <div>
+                            <span class="time-label">After Hours (Commercial)</span>
+                            <span class="time-count">${commercial.length} customer${commercial.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <span class="time-expand">▼</span>
+                    </div>
+                    <div class="time-section-content">
+                        ${commercial.length === 0 ? '<div style="color:#666;padding:8px 0;font-size:13px;">No commercial accounts</div>' : ''}
+                        ${commercial.map(c => renderCompactCard(c, false)).join('')}
+                    </div>
+                </div>
+            `;
 
             container.innerHTML = html;
         }
@@ -1040,6 +1304,7 @@
             document.getElementById('customer-address').value = '';
             document.getElementById('customer-phone').value = '';
             document.getElementById('customer-notes').value = '';
+            document.getElementById('customer-commercial').checked = false;
             document.getElementById('archive-customer-btn').style.display = 'none';
             openModal('customer');
         }
@@ -1055,6 +1320,7 @@
             document.getElementById('customer-address').value = customer.address || '';
             document.getElementById('customer-phone').value = customer.phone || '';
             document.getElementById('customer-notes').value = customer.notes || '';
+            document.getElementById('customer-commercial').checked = customer.isCommercial || false;
 
             const archiveBtn = document.getElementById('archive-customer-btn');
             archiveBtn.style.display = 'block';
@@ -1070,6 +1336,7 @@
             const address = document.getElementById('customer-address').value.trim();
             const phone = document.getElementById('customer-phone').value.trim();
             const notes = document.getElementById('customer-notes').value.trim();
+            const isCommercial = document.getElementById('customer-commercial').checked;
 
             if (!name) {
                 showToast('Name is required');
@@ -1083,6 +1350,7 @@
                     customer.address = address;
                     customer.phone = phone;
                     customer.notes = notes;
+                    customer.isCommercial = isCommercial;
                 }
                 saveData();
                 render();
@@ -1096,7 +1364,8 @@
                     address,
                     phone,
                     notes,
-                    archived: false
+                    archived: false,
+                    isCommercial: isCommercial
                 };
                 data.customers.push(newCustomer);
                 saveData();
