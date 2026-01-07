@@ -137,6 +137,54 @@
         .job-btn.view { background: #333; color: #fff; }
         .job-btn.edit { background: #333; color: #fff; }
         .job-btn.archive { background: #991b1b; color: #fff; }
+        .job-btn.call { background: #8b5cf6; color: #fff; }
+
+        /* Call status badges */
+        .call-status {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+        .call-status.confirmed { background: #4ade80; color: #000; }
+        .call-status.vm { background: #f59e0b; color: #000; }
+        .call-status.no-answer { background: #ef4444; color: #fff; }
+
+        /* Call log */
+        .call-log {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .call-log-item {
+            padding: 4px 0;
+            border-bottom: 1px solid #333;
+        }
+        .call-log-item:last-child { border-bottom: none; }
+
+        /* Call options */
+        .call-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .call-option {
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            background: #16213e;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .call-option:active { transform: scale(0.98); }
+        .call-option.confirmed { border-color: #4ade80; }
+        .call-option.vm { border-color: #f59e0b; }
+        .call-option.no-answer { border-color: #ef4444; }
+        .call-option.rescheduled { border-color: #3b82f6; }
 
         /* Form Elements */
         .form-group { margin-bottom: 16px; }
@@ -603,6 +651,37 @@
         </div>
     </div>
 
+    <!-- Pre-Call Modal -->
+    <div id="modal-call" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="call-customer-name">Pre-Call</span>
+                <button class="modal-close" onclick="closeModal('call')">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Scheduled Time <span class="optional">(optional)</span></label>
+                <input type="text" id="call-scheduled" class="form-input" placeholder="e.g. Tomorrow 9am, Friday 2-4pm">
+            </div>
+
+            <div class="section-header">Call Result</div>
+            <div class="call-options">
+                <button class="call-option confirmed" onclick="logCall('confirmed')">✓ Confirmed</button>
+                <button class="call-option vm" onclick="logCall('vm')">📞 Left VM</button>
+                <button class="call-option no-answer" onclick="logCall('no-answer')">✗ No Answer</button>
+                <button class="call-option rescheduled" onclick="logCall('rescheduled')">📅 Rescheduled</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notes <span class="optional">(optional)</span></label>
+                <textarea id="call-notes" class="form-input" placeholder="Anything to note about the call..."></textarea>
+            </div>
+
+            <div class="section-header">Recent Calls</div>
+            <div id="call-history" class="call-log"></div>
+        </div>
+    </div>
+
     <!-- Pest Detail Modal -->
     <div id="modal-pest" class="modal">
         <div class="modal-content">
@@ -622,7 +701,8 @@
         let data = {
             customers: [],
             jobs: [],
-            referrals: []
+            referrals: [],
+            calls: []
         };
 
         let currentCustomerId = null;
@@ -699,6 +779,93 @@
             return Array.from(allPests).map(p => pestIcons[p] || '').join('');
         }
 
+        // Get last call status for customer (today only)
+        function getLastCallToday(customerId) {
+            const today = new Date().toDateString();
+            const todayCalls = (data.calls || []).filter(c =>
+                c.customerId === customerId &&
+                new Date(c.date).toDateString() === today
+            ).sort((a, b) => new Date(b.date) - new Date(a.date));
+            return todayCalls[0] || null;
+        }
+
+        // Get call status badge HTML
+        function getCallBadge(customerId) {
+            const lastCall = getLastCallToday(customerId);
+            if (!lastCall) return '';
+            const labels = {
+                'confirmed': '<span class="call-status confirmed">Confirmed</span>',
+                'vm': '<span class="call-status vm">Left VM</span>',
+                'no-answer': '<span class="call-status no-answer">No Answer</span>',
+                'rescheduled': '<span class="call-status vm">Rescheduled</span>'
+            };
+            return labels[lastCall.result] || '';
+        }
+
+        // Open pre-call modal
+        function openPreCall(customerId) {
+            const customer = data.customers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            currentCustomerId = customerId;
+            document.getElementById('call-customer-name').textContent = 'Pre-Call: ' + customer.name;
+            document.getElementById('call-scheduled').value = customer.scheduledTime || '';
+            document.getElementById('call-notes').value = '';
+
+            // Show call history
+            const customerCalls = (data.calls || []).filter(c => c.customerId === customerId).reverse().slice(0, 5);
+            let historyHtml = '';
+            if (customerCalls.length === 0) {
+                historyHtml = '<div style="color:#666;text-align:center;padding:12px;">No calls logged yet</div>';
+            } else {
+                customerCalls.forEach(c => {
+                    const resultLabels = { 'confirmed': '✓ Confirmed', 'vm': '📞 Left VM', 'no-answer': '✗ No Answer', 'rescheduled': '📅 Rescheduled' };
+                    historyHtml += `<div class="call-log-item">
+                        <strong>${resultLabels[c.result] || c.result}</strong> - ${new Date(c.date).toLocaleString()}
+                        ${c.scheduled ? `<br>Scheduled: ${c.scheduled}` : ''}
+                        ${c.notes ? `<br>${c.notes}` : ''}
+                    </div>`;
+                });
+            }
+            document.getElementById('call-history').innerHTML = historyHtml;
+
+            openModal('call');
+        }
+
+        // Log a call
+        function logCall(result) {
+            if (!currentCustomerId) return;
+
+            const scheduled = document.getElementById('call-scheduled').value.trim();
+            const notes = document.getElementById('call-notes').value.trim();
+
+            // Save scheduled time to customer
+            const customer = data.customers.find(c => c.id === currentCustomerId);
+            if (customer && scheduled) {
+                customer.scheduledTime = scheduled;
+            }
+
+            // Initialize calls array if needed
+            if (!data.calls) data.calls = [];
+
+            // Add call log
+            data.calls.push({
+                id: Date.now().toString(),
+                customerId: currentCustomerId,
+                date: new Date().toISOString(),
+                result: result,
+                scheduled: scheduled,
+                notes: notes
+            });
+
+            saveData();
+            render();
+            closeModal('call');
+
+            const labels = { 'confirmed': 'Confirmed', 'vm': 'Left VM', 'no-answer': 'No Answer', 'rescheduled': 'Rescheduled' };
+            showToast('Logged: ' + labels[result]);
+        }
+
         // Render today's jobs
         function renderToday() {
             const container = document.getElementById('today-jobs');
@@ -723,6 +890,7 @@
                 const draftJob = getDraftJob(c.id);
                 const totalVisits = data.jobs.filter(j => j.customerId === c.id && j.status === 'completed').length;
                 const pests = getCustomerPests(c.id);
+                const callBadge = getCallBadge(c.id);
 
                 let statusClass = '';
                 let badge = '';
@@ -736,17 +904,17 @@
 
                 html += `
                     <div class="job-card ${statusClass}">
-                        <div class="job-name">${c.name}${badge}</div>
+                        <div class="job-name">${c.name}${badge}${callBadge}</div>
                         ${c.address ? `<div class="job-address">${c.address}</div>` : ''}
-                        <div class="job-meta">${c.phone || 'No phone'} · ${totalVisits} visits</div>
+                        <div class="job-meta">${c.phone || 'No phone'} · ${totalVisits} visits${c.scheduledTime ? ` · ${c.scheduledTime}` : ''}</div>
                         ${pests ? `<div class="job-pests">${pests}</div>` : ''}
                         <div class="job-actions">
+                            <button class="job-btn call" onclick="openPreCall('${c.id}')">Call</button>
                             ${draftJob ?
                                 `<button class="job-btn resume" onclick="resumeJob('${draftJob.id}')">Resume</button>` :
-                                `<button class="job-btn start" onclick="startJob('${c.id}')">Start Visit</button>`
+                                `<button class="job-btn start" onclick="startJob('${c.id}')">Start</button>`
                             }
                             <button class="job-btn view" onclick="viewHistory('${c.id}')">History</button>
-                            <button class="job-btn edit" onclick="editCustomer('${c.id}')">Edit</button>
                         </div>
                     </div>
                 `;
@@ -789,6 +957,7 @@
                 const jobCount = data.jobs.filter(j => j.customerId === c.id && j.status === 'completed').length;
                 const draftJob = getDraftJob(c.id);
                 const pests = getCustomerPests(c.id);
+                const callBadge = getCallBadge(c.id);
 
                 let statusClass = c.archived ? 'archived' : '';
                 let badge = '';
@@ -799,20 +968,20 @@
 
                 html += `
                     <div class="job-card ${statusClass}">
-                        <div class="job-name">${c.name}${badge}</div>
+                        <div class="job-name">${c.name}${badge}${callBadge}</div>
                         ${c.address ? `<div class="job-address">${c.address}</div>` : ''}
-                        <div class="job-meta">${c.phone || 'No phone'} · ${jobCount} visits${c.archived ? ' · Archived' : ''}</div>
+                        <div class="job-meta">${c.phone || 'No phone'} · ${jobCount} visits${c.archived ? ' · Archived' : ''}${c.scheduledTime ? ` · ${c.scheduledTime}` : ''}</div>
                         ${pests ? `<div class="job-pests">${pests}</div>` : ''}
                         <div class="job-actions">
                             ${c.archived ?
                                 `<button class="job-btn view" onclick="editCustomer('${c.id}')">Unarchive</button>` :
-                                (draftJob ?
-                                    `<button class="job-btn resume" onclick="resumeJob('${draftJob.id}')">Resume</button>` :
-                                    `<button class="job-btn start" onclick="startJob('${c.id}')">Start Visit</button>`
-                                )
+                                `<button class="job-btn call" onclick="openPreCall('${c.id}')">Call</button>`
                             }
+                            ${!c.archived && (draftJob ?
+                                `<button class="job-btn resume" onclick="resumeJob('${draftJob.id}')">Resume</button>` :
+                                `<button class="job-btn start" onclick="startJob('${c.id}')">Start</button>`
+                            )}
                             <button class="job-btn view" onclick="viewHistory('${c.id}')">History</button>
-                            <button class="job-btn edit" onclick="editCustomer('${c.id}')">Edit</button>
                         </div>
                     </div>
                 `;
