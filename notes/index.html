@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>PestTracker</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #333;
+        }
+        .header h1 {
+            font-size: 20px;
+            color: #4ade80;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .header-btn {
+            background: #333;
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .header-btn:active { background: #444; }
+        .header-btn.primary { background: #4ade80; color: #000; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: #16213e;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            border-top: 1px solid #333;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+        .tab.active { color: #4ade80; }
+        .tab-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+        /* Views */
+        .view { display: none; padding: 16px; }
+        .view.active { display: block; }
+
+        /* Job Cards */
+        .job-card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #666;
+        }
+        .job-card.done { border-left-color: #4ade80; opacity: 0.7; }
+        .job-card.in-progress { border-left-color: #fbbf24; }
+        .job-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .job-address { font-size: 14px; color: #888; margin-bottom: 8px; }
+        .job-meta { font-size: 12px; color: #666; }
+        .job-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .job-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .job-btn.start { background: #4ade80; color: #000; }
+        .job-btn.view { background: #333; color: #fff; }
+        .job-btn.done { background: #666; color: #fff; }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 14px; color: #888; margin-bottom: 8px; display: block; }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #16213e;
+            color: #fff;
+            font-size: 16px;
+        }
+        .form-input:focus { outline: none; border-color: #4ade80; }
+        textarea.form-input { min-height: 100px; resize: vertical; }
+
+        /* Toggle Buttons */
+        .toggle-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .toggle-btn {
+            padding: 12px 8px;
+            border-radius: 8px;
+            border: 2px solid #333;
+            background: #16213e;
+            color: #888;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .toggle-btn.selected {
+            border-color: #4ade80;
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+        .toggle-btn:active { transform: scale(0.98); }
+
+        /* Counter */
+        .counter {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .counter-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #333;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .counter-btn:active { background: #444; }
+        .counter-value {
+            font-size: 24px;
+            font-weight: 600;
+            min-width: 40px;
+            text-align: center;
+        }
+        .counter-label { color: #888; font-size: 14px; }
+
+        /* Upsale Button */
+        .upsale-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        .upsale-btn:active { transform: scale(0.98); }
+
+        /* Referrals List */
+        .referral-card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #f59e0b;
+        }
+        .referral-date { font-size: 12px; color: #666; }
+        .referral-customer { font-size: 16px; font-weight: 600; margin: 4px 0; }
+        .referral-notes { font-size: 14px; color: #888; }
+        .referral-actions { margin-top: 12px; display: flex; gap: 8px; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 200;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal.active { display: block; }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title { font-size: 20px; font-weight: 600; }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Section Header */
+        .section-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 20px 0 12px;
+            color: #4ade80;
+        }
+
+        /* History */
+        .history-item {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+        .history-date { font-size: 12px; color: #4ade80; }
+        .history-work { font-size: 14px; margin-top: 4px; }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: #4ade80;
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .submit-btn:active { transform: scale(0.98); }
+        .submit-btn.secondary { background: #333; color: #fff; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4ade80;
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 300;
+            display: none;
+        }
+        .toast.show { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🪤 PestTracker</h1>
+        <div class="header-actions">
+            <button class="header-btn primary" onclick="openAddCustomer()">+ Add Customer</button>
+            <button class="header-btn" onclick="exportData()">Export</button>
+        </div>
+    </div>
+
+    <!-- Today View -->
+    <div id="view-today" class="view active">
+        <div id="today-jobs"></div>
+    </div>
+
+    <!-- Customers View -->
+    <div id="view-customers" class="view">
+        <div id="all-customers"></div>
+    </div>
+
+    <!-- Referrals View -->
+    <div id="view-referrals" class="view">
+        <div id="referral-list"></div>
+    </div>
+
+    <!-- Bottom Tabs -->
+    <div class="tabs">
+        <button class="tab active" onclick="showView('today')">
+            <span class="tab-icon">📋</span>
+            Today
+        </button>
+        <button class="tab" onclick="showView('customers')">
+            <span class="tab-icon">👥</span>
+            Customers
+        </button>
+        <button class="tab" onclick="showView('referrals')">
+            <span class="tab-icon">⭐</span>
+            Referrals
+        </button>
+    </div>
+
+    <!-- Add/Edit Customer Modal -->
+    <div id="modal-customer" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="customer-modal-title">Add Customer</span>
+                <button class="modal-close" onclick="closeModal('customer')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Customer Name</label>
+                <input type="text" id="customer-name" class="form-input" placeholder="John Smith">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                <input type="text" id="customer-address" class="form-input" placeholder="123 Main St">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input type="tel" id="customer-phone" class="form-input" placeholder="555-1234">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea id="customer-notes" class="form-input" placeholder="Gate code, dog in yard, etc."></textarea>
+            </div>
+            <button class="submit-btn" onclick="saveCustomer()">Save Customer</button>
+            <button class="submit-btn secondary" id="delete-customer-btn" style="display:none; margin-top:8px;" onclick="deleteCustomer()">Delete Customer</button>
+        </div>
+    </div>
+
+    <!-- Job Log Modal -->
+    <div id="modal-job" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="job-customer-name">Log Work</span>
+                <button class="modal-close" onclick="closeModal('job')">&times;</button>
+            </div>
+
+            <div class="section-header">Pests Found</div>
+            <div class="toggle-grid" id="pest-toggles">
+                <button class="toggle-btn" data-pest="mice">🐭 Mice</button>
+                <button class="toggle-btn" data-pest="rats">🐀 Rats</button>
+                <button class="toggle-btn" data-pest="squirrels">🐿️ Squirrels</button>
+                <button class="toggle-btn" data-pest="bats">🦇 Bats</button>
+                <button class="toggle-btn" data-pest="raccoons">🦝 Raccoons</button>
+                <button class="toggle-btn" data-pest="insects">🪳 Insects</button>
+                <button class="toggle-btn" data-pest="birds">🐦 Birds</button>
+                <button class="toggle-btn" data-pest="other">❓ Other</button>
+            </div>
+
+            <div class="section-header">Work Done</div>
+            <div class="toggle-grid" id="work-toggles">
+                <button class="toggle-btn" data-work="snap-traps">🪤 Snap Traps</button>
+                <button class="toggle-btn" data-work="glue-boards">📋 Glue Boards</button>
+                <button class="toggle-btn" data-work="bait-stations">🧀 Bait Stations</button>
+                <button class="toggle-btn" data-work="cage-traps">🗑️ Cage Traps</button>
+                <button class="toggle-btn" data-work="wire-mesh">🔲 Wire Mesh</button>
+                <button class="toggle-btn" data-work="one-way-door">🚪 One-Way Door</button>
+                <button class="toggle-btn" data-work="insulation-add">➕ Add Insulation</button>
+                <button class="toggle-btn" data-work="insulation-remove">➖ Remove Insulation</button>
+                <button class="toggle-btn" data-work="seal-hole">🕳️ Seal Hole</button>
+                <button class="toggle-btn" data-work="inspection">🔍 Inspection</button>
+            </div>
+
+            <div class="section-header">Trap Count</div>
+            <div class="counter">
+                <button class="counter-btn" onclick="adjustCount(-1)">−</button>
+                <span class="counter-value" id="trap-count">0</span>
+                <button class="counter-btn" onclick="adjustCount(1)">+</button>
+                <span class="counter-label">traps set/checked</span>
+            </div>
+
+            <div class="section-header">Notes</div>
+            <div class="form-group">
+                <textarea id="job-notes" class="form-input" placeholder="What did you find? What needs follow-up?"></textarea>
+            </div>
+
+            <button class="upsale-btn" onclick="referToSpecialist()">⭐ Refer to Specialist</button>
+            <button class="submit-btn" onclick="saveJob()">Complete Job</button>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="modal-history" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="history-customer-name">History</span>
+                <button class="modal-close" onclick="closeModal('history')">&times;</button>
+            </div>
+            <div id="history-list"></div>
+            <button class="submit-btn" style="margin-top:16px" onclick="closeModal('history');startJob(currentCustomerId)">Start New Job</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Data structure
+        let data = {
+            customers: [],
+            jobs: [],
+            referrals: []
+        };
+
+        let currentCustomerId = null;
+        let editingCustomerId = null;
+        let trapCount = 0;
+
+        // Load data
+        function loadData() {
+            const saved = localStorage.getItem('pesttracker');
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+            renderToday();
+            renderCustomers();
+            renderReferrals();
+        }
+
+        // Save data
+        function saveData() {
+            localStorage.setItem('pesttracker', JSON.stringify(data));
+        }
+
+        // Show view
+        function showView(view) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('view-' + view).classList.add('active');
+            document.querySelector(`.tab[onclick="showView('${view}')"]`).classList.add('active');
+        }
+
+        // Render today's jobs
+        function renderToday() {
+            const container = document.getElementById('today-jobs');
+            const today = new Date().toDateString();
+
+            // Get today's jobs and customers who need visits
+            const todayJobs = data.jobs.filter(j => new Date(j.date).toDateString() === today);
+            const todayCustomerIds = todayJobs.map(j => j.customerId);
+
+            let html = '';
+
+            // Show customers with today's jobs
+            data.customers.forEach(c => {
+                const todayJob = todayJobs.find(j => j.customerId === c.id);
+                const status = todayJob ? (todayJob.completed ? 'done' : 'in-progress') : '';
+
+                html += `
+                    <div class="job-card ${status}">
+                        <div class="job-name">${c.name}</div>
+                        <div class="job-address">${c.address}</div>
+                        <div class="job-meta">${c.phone || 'No phone'}</div>
+                        <div class="job-actions">
+                            ${todayJob && todayJob.completed ?
+                                `<button class="job-btn done" onclick="viewHistory('${c.id}')">View</button>` :
+                                `<button class="job-btn start" onclick="startJob('${c.id}')">Start Job</button>`
+                            }
+                            <button class="job-btn view" onclick="viewHistory('${c.id}')">History</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (!html) {
+                html = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <p>No customers yet</p>
+                        <p style="font-size:14px;margin-top:8px">Tap "+ Add Customer" to get started</p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Render all customers
+        function renderCustomers() {
+            const container = document.getElementById('all-customers');
+            let html = '';
+
+            data.customers.forEach(c => {
+                const jobCount = data.jobs.filter(j => j.customerId === c.id).length;
+                html += `
+                    <div class="job-card" onclick="editCustomer('${c.id}')">
+                        <div class="job-name">${c.name}</div>
+                        <div class="job-address">${c.address}</div>
+                        <div class="job-meta">${c.phone || 'No phone'} · ${jobCount} visits</div>
+                    </div>
+                `;
+            });
+
+            if (!html) {
+                html = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>No customers yet</p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Render referrals
+        function renderReferrals() {
+            const container = document.getElementById('referral-list');
+            let html = '';
+
+            data.referrals.forEach((r, i) => {
+                const customer = data.customers.find(c => c.id === r.customerId);
+                html += `
+                    <div class="referral-card">
+                        <div class="referral-date">${new Date(r.date).toLocaleDateString()}</div>
+                        <div class="referral-customer">${customer ? customer.name : 'Unknown'}</div>
+                        <div class="referral-notes">${r.notes || 'No notes'}</div>
+                        <div class="referral-actions">
+                            <button class="job-btn view" onclick="copyReferral(${i})">Copy Info</button>
+                            <button class="job-btn done" onclick="removeReferral(${i})">Done</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (!html) {
+                html = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⭐</div>
+                        <p>No referrals yet</p>
+                        <p style="font-size:14px;margin-top:8px">Tap "Refer to Specialist" during a job</p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Open add customer modal
+        function openAddCustomer() {
+            editingCustomerId = null;
+            document.getElementById('customer-modal-title').textContent = 'Add Customer';
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-address').value = '';
+            document.getElementById('customer-phone').value = '';
+            document.getElementById('customer-notes').value = '';
+            document.getElementById('delete-customer-btn').style.display = 'none';
+            openModal('customer');
+        }
+
+        // Edit customer
+        function editCustomer(id) {
+            const customer = data.customers.find(c => c.id === id);
+            if (!customer) return;
+
+            editingCustomerId = id;
+            document.getElementById('customer-modal-title').textContent = 'Edit Customer';
+            document.getElementById('customer-name').value = customer.name;
+            document.getElementById('customer-address').value = customer.address;
+            document.getElementById('customer-phone').value = customer.phone || '';
+            document.getElementById('customer-notes').value = customer.notes || '';
+            document.getElementById('delete-customer-btn').style.display = 'block';
+            openModal('customer');
+        }
+
+        // Save customer
+        function saveCustomer() {
+            const name = document.getElementById('customer-name').value.trim();
+            const address = document.getElementById('customer-address').value.trim();
+            const phone = document.getElementById('customer-phone').value.trim();
+            const notes = document.getElementById('customer-notes').value.trim();
+
+            if (!name || !address) {
+                showToast('Name and address required');
+                return;
+            }
+
+            if (editingCustomerId) {
+                const customer = data.customers.find(c => c.id === editingCustomerId);
+                if (customer) {
+                    customer.name = name;
+                    customer.address = address;
+                    customer.phone = phone;
+                    customer.notes = notes;
+                }
+            } else {
+                data.customers.push({
+                    id: Date.now().toString(),
+                    name,
+                    address,
+                    phone,
+                    notes
+                });
+            }
+
+            saveData();
+            renderToday();
+            renderCustomers();
+            closeModal('customer');
+            showToast(editingCustomerId ? 'Customer updated' : 'Customer added');
+        }
+
+        // Delete customer
+        function deleteCustomer() {
+            if (!editingCustomerId) return;
+            if (!confirm('Delete this customer and all their job history?')) return;
+
+            data.customers = data.customers.filter(c => c.id !== editingCustomerId);
+            data.jobs = data.jobs.filter(j => j.customerId !== editingCustomerId);
+            data.referrals = data.referrals.filter(r => r.customerId !== editingCustomerId);
+
+            saveData();
+            renderToday();
+            renderCustomers();
+            renderReferrals();
+            closeModal('customer');
+            showToast('Customer deleted');
+        }
+
+        // Start job
+        function startJob(customerId) {
+            const customer = data.customers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            currentCustomerId = customerId;
+            trapCount = 0;
+
+            document.getElementById('job-customer-name').textContent = customer.name;
+            document.getElementById('trap-count').textContent = '0';
+            document.getElementById('job-notes').value = '';
+
+            // Reset toggles
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected'));
+
+            openModal('job');
+        }
+
+        // Toggle buttons
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.classList.toggle('selected');
+            });
+        });
+
+        // Adjust trap count
+        function adjustCount(delta) {
+            trapCount = Math.max(0, trapCount + delta);
+            document.getElementById('trap-count').textContent = trapCount;
+        }
+
+        // Save job
+        function saveJob() {
+            const pests = Array.from(document.querySelectorAll('[data-pest].selected')).map(b => b.dataset.pest);
+            const work = Array.from(document.querySelectorAll('[data-work].selected')).map(b => b.dataset.work);
+            const notes = document.getElementById('job-notes').value.trim();
+
+            data.jobs.push({
+                id: Date.now().toString(),
+                customerId: currentCustomerId,
+                date: new Date().toISOString(),
+                pests,
+                work,
+                trapCount,
+                notes,
+                completed: true
+            });
+
+            saveData();
+            renderToday();
+            closeModal('job');
+            showToast('Job completed!');
+        }
+
+        // Refer to specialist
+        function referToSpecialist() {
+            const notes = document.getElementById('job-notes').value.trim();
+            const pests = Array.from(document.querySelectorAll('[data-pest].selected')).map(b => b.textContent.trim());
+            const work = Array.from(document.querySelectorAll('[data-work].selected')).map(b => b.textContent.trim());
+
+            data.referrals.push({
+                customerId: currentCustomerId,
+                date: new Date().toISOString(),
+                notes: `Pests: ${pests.join(', ') || 'None selected'}\nWork: ${work.join(', ') || 'None selected'}\nNotes: ${notes || 'None'}`
+            });
+
+            saveData();
+            renderReferrals();
+            showToast('Added to referrals!');
+        }
+
+        // View history
+        function viewHistory(customerId) {
+            const customer = data.customers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            currentCustomerId = customerId;
+            document.getElementById('history-customer-name').textContent = customer.name + ' History';
+
+            const customerJobs = data.jobs.filter(j => j.customerId === customerId).reverse();
+            let html = '';
+
+            customerJobs.forEach(j => {
+                const pestLabels = { mice: '🐭', rats: '🐀', squirrels: '🐿️', bats: '🦇', raccoons: '🦝', insects: '🪳', birds: '🐦', other: '❓' };
+                const pests = j.pests.map(p => pestLabels[p] || p).join(' ');
+
+                html += `
+                    <div class="history-item">
+                        <div class="history-date">${new Date(j.date).toLocaleDateString()}</div>
+                        <div class="history-work">
+                            ${pests ? `Pests: ${pests}<br>` : ''}
+                            ${j.work.length ? `Work: ${j.work.join(', ')}<br>` : ''}
+                            ${j.trapCount ? `Traps: ${j.trapCount}<br>` : ''}
+                            ${j.notes ? `Notes: ${j.notes}` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (!html) {
+                html = '<div class="empty-state"><p>No history yet</p></div>';
+            }
+
+            document.getElementById('history-list').innerHTML = html;
+            openModal('history');
+        }
+
+        // Copy referral info
+        function copyReferral(index) {
+            const r = data.referrals[index];
+            const customer = data.customers.find(c => c.id === r.customerId);
+            const text = `REFERRAL\n${customer ? customer.name : 'Unknown'}\n${customer ? customer.address : ''}\n${customer ? customer.phone : ''}\n\n${r.notes}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!');
+            }).catch(() => {
+                showToast('Copy failed');
+            });
+        }
+
+        // Remove referral
+        function removeReferral(index) {
+            data.referrals.splice(index, 1);
+            saveData();
+            renderReferrals();
+            showToast('Referral removed');
+        }
+
+        // Export data
+        function exportData() {
+            const csv = ['Customer,Address,Phone,Date,Pests,Work,Traps,Notes'];
+
+            data.jobs.forEach(j => {
+                const c = data.customers.find(x => x.id === j.customerId);
+                csv.push([
+                    c ? c.name : '',
+                    c ? c.address : '',
+                    c ? c.phone : '',
+                    new Date(j.date).toLocaleDateString(),
+                    j.pests.join(';'),
+                    j.work.join(';'),
+                    j.trapCount,
+                    (j.notes || '').replace(/,/g, ';')
+                ].join(','));
+            });
+
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pesttracker-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Exported!');
+        }
+
+        // Modal helpers
+        function openModal(name) {
+            document.getElementById('modal-' + name).classList.add('active');
+        }
+
+        function closeModal(name) {
+            document.getElementById('modal-' + name).classList.remove('active');
+        }
+
+        // Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Init
+        loadData();
+    </script>
+</body>
+</html>
